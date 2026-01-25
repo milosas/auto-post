@@ -28,12 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Rate limiting prevents API cost runaway (hard limits enforced)
   4. Generated Lithuanian text is natural and industry-appropriate (verified via test scenarios)
   5. Streaming displays text progressively as tokens arrive (not blank screen then dump)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD during planning
-- [ ] 01-02: TBD during planning
-- [ ] 01-03: TBD during planning
+- [ ] 01-01-PLAN.md - Project setup with Next.js 15, AI SDK, and rate limiting infrastructure
+- [ ] 01-02-PLAN.md - POST /api/generate endpoint with Edge streaming and rate limiting
+- [ ] 01-03-PLAN.md - Test UI for streaming verification + human checkpoint
 
 ### Phase 2: Core Generator
 **Goal**: Complete text-only post generator with mobile-first UI delivering 60-second workflow
@@ -74,7 +74,7 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & API | 0/TBD | Not started | - |
+| 1. Foundation & API | 0/3 | Ready to execute | - |
 | 2. Core Generator | 0/TBD | Not started | - |
 | 3. Image & Preview | 0/TBD | Not started | - |
 
