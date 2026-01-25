@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 1 of 3 (Foundation & API)
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: In progress
-Last activity: 2026-01-25 — Completed 01-01-PLAN.md
+Last activity: 2026-01-25 — Completed 01-02-PLAN.md
 
-Progress: [█░░░░░░░░░] 11%
+Progress: [██░░░░░░░░] 22%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 7 minutes
-- Total execution time: 0.12 hours
+- Total plans completed: 2
+- Average duration: 10.5 minutes
+- Total execution time: 0.35 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 - Foundation & API | 1/3 | 7 min | 7 min |
+| 1 - Foundation & API | 2/3 | 21 min | 10.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (7m)
-- Trend: First plan completed
+- Last 5 plans: 01-01 (7m), 01-02 (14m)
+- Trend: Steady velocity
 
 *Updated after each plan completion*
 
@@ -50,6 +50,8 @@ Recent decisions affecting current work:
 - 01-01: @ai-sdk/openai-compatible for custom baseURL (kie.ai proxy support)
 - 01-01: Sliding window rate limit over fixed window (prevents burst abuse)
 - 01-01: Singleton rate limiter pattern (connection caching in serverless)
+- 01-02: Edge Runtime for 25s timeout (serverless 10s insufficient for AI generation)
+- 01-02: Rate limit check before streamText call (cost protection order)
 
 ### Pending Todos
 
@@ -60,9 +62,11 @@ None yet.
 **Phase 1:**
 - Lithuanian language quality needs validation (limited AI training data for Lithuanian)
 - API cost monitoring essential from day one (cost runaway risk)
-- Vercel timeout limits (10s serverless vs 25s Edge Functions) may affect generation
+- ~~Vercel timeout limits (10s serverless vs 25s Edge Functions) may affect generation~~ RESOLVED - Using Edge Runtime with 25s timeout
 - Next.js 15.1.4 security vulnerability exists (npm warning) - consider upgrading
 - Environment variables needed before API endpoint works (KIEAI_*, UPSTASH_REDIS_*)
+- Edge Runtime behavior in production untested (local dev doesn't use Edge)
+- Rate limiting with anonymous IP may not work perfectly in development (localhost issue)
 
 **Phase 3:**
 - DALL-E content policy behavior with Lithuanian prompts unpredictable (deferred to v2)
@@ -70,5 +74,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Completed 01-01-PLAN.md
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
+
+Config:
+model_profile: balanced
+commit_docs: true
