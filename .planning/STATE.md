@@ -9,29 +9,30 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 
 ## Current Position
 
-Phase: 1 of 3 (Foundation & API)
-Plan: 3 of 3 complete
-Status: Phase complete
-Last activity: 2026-01-25 — Completed 01-03-PLAN.md
+Phase: 2 of 3 (Core Generator)
+Plan: 1 of 3 complete
+Status: In progress
+Last activity: 2026-01-25 — Completed 02-01-PLAN.md
 
-Progress: [███░░░░░░░] 33%
+Progress: [████░░░░░░] 44%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 9.7 minutes
-- Total execution time: 0.48 hours
+- Total plans completed: 4
+- Average duration: 10.25 minutes
+- Total execution time: 0.68 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 - Foundation & API | 3/3 | 29 min | 9.7 min |
+| 2 - Core Generator | 1/3 | 12 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (7m), 01-02 (14m), 01-03 (8m)
-- Trend: Excellent velocity, phase complete
+- Last 5 plans: 01-01 (7m), 01-02 (14m), 01-03 (8m), 02-01 (12m)
+- Trend: Consistent velocity, on track
 
 *Updated after each plan completion*
 
@@ -54,6 +55,8 @@ Recent decisions affecting current work:
 - 01-02: Rate limit check before streamText call (cost protection order)
 - 01-03: Switched from kie.ai to direct OpenAI for text generation (simplicity)
 - 01-03: Rate limiting made optional (graceful degradation when Redis not configured)
+- 02-01: Fuse.js threshold 0.3 for typo-tolerant search (balances accuracy and fuzziness)
+- 02-01: SSR-safe localStorage hook pattern (prevents hydration errors)
 
 ### Pending Todos
 
@@ -70,15 +73,17 @@ None yet.
 - Edge Runtime behavior in production untested (local dev doesn't use Edge)
 - Rate limiting with anonymous IP may not work perfectly in development (localhost issue)
 
+**Phase 2:** IN PROGRESS
+- Plan 02-01 complete - industry autocomplete ready for integration
+
 **Phase 3:**
 - DALL-E content policy behavior with Lithuanian prompts unpredictable (deferred to v2)
 
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Completed 01-03-PLAN.md (Phase 1 complete)
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
-Next phase: Phase 2 - Core Generator (ready to plan)
 
 Config:
 model_profile: balanced
