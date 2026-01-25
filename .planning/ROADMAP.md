@@ -12,7 +12,7 @@ This roadmap delivers an AI-powered social media post generator for Lithuanian s
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & API** - Secure OpenAI integration with streaming, rate limiting, and cost controls
+- [x] **Phase 1: Foundation & API** - Secure OpenAI integration with streaming, rate limiting, and cost controls ✓
 - [ ] **Phase 2: Core Generator** - Complete text-only post generator workflow with mobile-first UI
 - [ ] **Phase 3: Image & Preview** - Image upload, social media preview, and export functionality
 
@@ -31,9 +31,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md - Project setup with Next.js 15, AI SDK, and rate limiting infrastructure
-- [ ] 01-02-PLAN.md - POST /api/generate endpoint with Edge streaming and rate limiting
-- [ ] 01-03-PLAN.md - Test UI for streaming verification + human checkpoint
+- [x] 01-01-PLAN.md - Project setup with Next.js 15, AI SDK, and rate limiting infrastructure ✓
+- [x] 01-02-PLAN.md - POST /api/generate endpoint with Edge streaming and rate limiting ✓
+- [x] 01-03-PLAN.md - Test UI for streaming verification + human checkpoint ✓
 
 ### Phase 2: Core Generator
 **Goal**: Complete text-only post generator with mobile-first UI delivering 60-second workflow
@@ -74,10 +74,10 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & API | 0/3 | Ready to execute | - |
-| 2. Core Generator | 0/TBD | Not started | - |
+| 1. Foundation & API | 3/3 | ✓ Complete | 2026-01-25 |
+| 2. Core Generator | 0/TBD | Ready to plan | - |
 | 3. Image & Preview | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-01-25 after initial creation*
+*Last updated: 2026-01-25 after Phase 1 completion*

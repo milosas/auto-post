@@ -113,10 +113,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONF-02 | Phase 2 | Pending |
 | CONF-03 | Phase 2 | Pending |
 | CONF-04 | Phase 2 | Pending |
-| GEN-01 | Phase 1 | Pending |
-| GEN-02 | Phase 1 | Pending |
-| GEN-03 | Phase 1 | Pending |
-| GEN-04 | Phase 1 | Pending |
+| GEN-01 | Phase 1 | Complete |
+| GEN-02 | Phase 1 | Complete |
+| GEN-03 | Phase 1 | Complete |
+| GEN-04 | Phase 1 | Complete |
 | OUT-01 | Phase 2 | Pending |
 | OUT-02 | Phase 2 | Pending |
 | OUT-03 | Phase 2 | Pending |
@@ -128,9 +128,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-02 | Phase 2 | Pending |
 | UI-03 | Phase 2 | Pending |
 | UI-04 | Phase 2 | Pending |
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 28 total
@@ -139,4 +139,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 after roadmap creation*
+*Last updated: 2026-01-25 after Phase 1 completion (7 requirements complete)*
