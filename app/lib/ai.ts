@@ -1,7 +1,9 @@
-import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { createOpenAI } from '@ai-sdk/openai';
 
-export const kieai = createOpenAICompatible({
-  name: 'kieai',
-  apiKey: process.env.KIEAI_API_KEY!,
-  baseURL: process.env.KIEAI_BASE_URL!,
+// OpenAI for text generation
+export const openai = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
 });
+
+// Alias for backwards compatibility (used in route.ts)
+export const kieai = openai;

@@ -51,20 +51,29 @@ Ilgis: ${lengthMap[request.length || 'medium']}`;
 
 export async function POST(request: Request) {
   try {
-    // 1. Rate limit check (before any processing)
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anonymous';
-    const { success, limit, remaining, reset } = await dailyLimit.limit(ip);
+    // 1. Rate limit check (before any processing) - skip if Redis not configured
+    let limit = 50;
+    let remaining = 50;
+    let reset = Date.now() + 86400000;
 
-    if (!success) {
-      const resetDate = new Date(reset);
-      const response: RateLimitError = {
-        error: 'rate_limit_exceeded',
-        limit,
-        remaining: 0,
-        resetAt: resetDate.toISOString(),
-        message: `Dienos limitas pasiektas. Limitas atsinaujins ${resetDate.toLocaleTimeString('lt-LT')}. Reikia daugiau? Susisiekite su mumis.`
-      };
-      return Response.json(response, { status: 429 });
+    if (dailyLimit) {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anonymous';
+      const rateLimitResult = await dailyLimit.limit(ip);
+      limit = rateLimitResult.limit;
+      remaining = rateLimitResult.remaining;
+      reset = rateLimitResult.reset;
+
+      if (!rateLimitResult.success) {
+        const resetDate = new Date(reset);
+        const response: RateLimitError = {
+          error: 'rate_limit_exceeded',
+          limit,
+          remaining: 0,
+          resetAt: resetDate.toISOString(),
+          message: `Dienos limitas pasiektas. Limitas atsinaujins ${resetDate.toLocaleTimeString('lt-LT')}. Reikia daugiau? Susisiekite su mumis.`
+        };
+        return Response.json(response, { status: 429 });
+      }
     }
 
     // 2. Parse and validate request body
