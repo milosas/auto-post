@@ -1,33 +1,31 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { IndustryAutocomplete } from './components/IndustryAutocomplete';
+import { PostConfiguration, PostConfigurationValues } from './components/PostConfiguration';
+import { StreamingDisplay } from './components/StreamingDisplay';
+import { ActionButtons } from './components/ActionButtons';
+import { useLocalStorage } from './lib/useLocalStorage';
+import { INDUSTRIES } from './lib/industries';
+import toast from 'react-hot-toast';
 
-interface RateLimitInfo {
-  limit: number;
-  remaining: number;
-  resetAt: string;
-}
-
-export default function TestPage() {
-  const [industry, setIndustry] = useState('Grožio specialistai');
+export default function HomePage() {
+  const [industry, setIndustryRaw] = useLocalStorage('lastIndustry', INDUSTRIES[0]);
+  const setIndustry = (value: string) => setIndustryRaw(value as any);
   const [prompt, setPrompt] = useState('');
+  const [config, setConfig] = useState<PostConfigurationValues>({
+    tone: 'friendly',
+    emoji: 'minimal',
+    length: 'medium',
+  });
   const [generatedText, setGeneratedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  const industries = [
-    'Grožio specialistai (kirpėjai, kosmetologai, nagų meistrai)',
-    'Treneriai (fitness, joga, personaliniai)',
-    'Kineziterapeutai',
-    'Masažistai',
-    'Kita'
-  ];
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      setError('Įveskite temą');
+      toast.error('Įveskite temą arba tikslą įrašui');
       return;
     }
 
@@ -48,29 +46,32 @@ export default function TestPage() {
         body: JSON.stringify({
           industry,
           prompt,
-          tone: 'friendly',
-          emoji: 'minimal',
-          length: 'medium'
+          tone: config.tone,
+          emoji: config.emoji,
+          length: config.length,
         }),
-        signal: abortControllerRef.current.signal
+        signal: abortControllerRef.current.signal,
       });
-
-      // Extract rate limit info from headers
-      const limit = response.headers.get('X-RateLimit-Limit');
-      const remaining = response.headers.get('X-RateLimit-Remaining');
-      const resetAt = response.headers.get('X-RateLimit-Reset');
-
-      if (limit && remaining && resetAt) {
-        setRateLimitInfo({
-          limit: parseInt(limit),
-          remaining: parseInt(remaining),
-          resetAt
-        });
-      }
 
       // Handle error responses
       if (!response.ok) {
         const errorData = await response.json();
+
+        // Specific error handling
+        if (response.status === 429) {
+          const resetTime = response.headers.get('X-RateLimit-Reset');
+          if (resetTime) {
+            const resetDate = new Date(resetTime);
+            toast.error(
+              `Pasiektas limitas. Bandykite po ${resetDate.toLocaleTimeString('lt-LT')}`
+            );
+          } else {
+            toast.error('Pasiektas generavimų limitas. Bandykite vėliau.');
+          }
+        } else {
+          toast.error(errorData.message || 'Generavimo klaida');
+        }
+
         setError(errorData.message || 'Generavimo klaida');
         setIsLoading(false);
         return;
@@ -89,14 +90,14 @@ export default function TestPage() {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        setGeneratedText(prev => prev + chunk);
+        setGeneratedText((prev) => prev + chunk);
       }
-
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         // Ignore abort errors
         return;
       }
+      toast.error('Tinklo klaida. Patikrinkite interneto ryšį ir bandykite dar kartą.');
       setError('Tinklo klaida. Bandykite dar kartą.');
       console.error('Generate error:', err);
     } finally {
@@ -104,85 +105,88 @@ export default function TestPage() {
     }
   };
 
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(generatedText);
+  };
+
+  const handleRegenerate = () => {
+    handleGenerate();
+  };
+
   return (
-    <main className="min-h-screen p-8 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">API Test - Streaming Generation</h1>
+    <main className="min-h-screen flex flex-col">
+      <div className="flex-1 p-4 pb-32 max-w-2xl mx-auto w-full">
+        {/* Header */}
+        <header className="mb-6">
+          <h1 className="text-3xl font-bold mb-2">Social Post Generator</h1>
+          <p className="text-gray-600">
+            Sukurkite profesionalų socialinių tinklų įrašą per 60 sekundžių
+          </p>
+        </header>
 
-      {/* Rate Limit Info */}
-      {rateLimitInfo && (
-        <div className="mb-4 p-3 bg-blue-50 rounded text-sm">
-          Liko generavimų: {rateLimitInfo.remaining} / {rateLimitInfo.limit}
-          {rateLimitInfo.remaining === 0 && (
-            <span className="block text-red-600">
-              Limitas atsinaujins: {new Date(rateLimitInfo.resetAt).toLocaleString('lt-LT')}
-            </span>
-          )}
-        </div>
-      )}
+        {/* Industry Selection */}
+        <section className="mb-6">
+          <label className="block text-sm font-medium mb-2">
+            Jūsų industrija / Veiklos sritis
+          </label>
+          <IndustryAutocomplete value={industry} onChange={setIndustry} />
+        </section>
 
-      {/* Form */}
-      <div className="space-y-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium mb-1">Sritis</label>
-          <select
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-            className="w-full p-2 border rounded"
-          >
-            {industries.map((ind) => (
-              <option key={ind} value={ind}>{ind}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Tema / Apie ką rašyti</label>
+        {/* Topic Input */}
+        <section className="mb-6">
+          <label className="block text-sm font-medium mb-2">
+            Tema / Apie ką rašyti
+          </label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Pvz.: Nauja plaukų dažymo technika, rudens akcija -20%..."
-            className="w-full p-2 border rounded h-24"
+            placeholder="Pvz.: Nauja plaukų dažymo technika, rudens akcija -20%, patarimai sveikai mitybai..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+            rows={4}
           />
-        </div>
+        </section>
 
-        <button
-          onClick={handleGenerate}
-          disabled={isLoading}
-          className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'Generuojama...' : 'Generuoti įrašą'}
-        </button>
-      </div>
+        {/* Configuration */}
+        <section className="mb-6">
+          <h2 className="text-lg font-medium mb-3">Įrašo nustatymai</h2>
+          <PostConfiguration values={config} onChange={setConfig} />
+        </section>
 
-      {/* Error Display */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded">
-          {error}
-        </div>
-      )}
+        {/* Generate Button */}
+        <section className="mb-6">
+          <button
+            onClick={handleGenerate}
+            disabled={isLoading}
+            className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+          >
+            {isLoading ? 'Generuojama...' : 'Generuoti įrašą'}
+          </button>
+        </section>
 
-      {/* Generated Text */}
-      <div className="border rounded p-4 min-h-[200px] bg-gray-50">
-        <h2 className="text-sm font-medium mb-2 text-gray-600">Sugeneruotas tekstas:</h2>
-        {isLoading && !generatedText && (
-          <div className="text-gray-400 animate-pulse">Laukiama atsakymo...</div>
+        {/* Generated Text Display */}
+        <section className="mb-6">
+          <h2 className="text-lg font-medium mb-3">Sugeneruotas tekstas</h2>
+          <StreamingDisplay text={generatedText} isLoading={isLoading} />
+        </section>
+
+        {/* Error Display */}
+        {error && (
+          <section className="mb-6">
+            <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+              {error}
+            </div>
+          </section>
         )}
-        <div className="whitespace-pre-wrap">{generatedText}</div>
-        {isLoading && generatedText && (
-          <span className="inline-block w-2 h-4 bg-blue-500 animate-pulse ml-1" />
-        )}
       </div>
 
-      {/* Instructions */}
-      <div className="mt-8 text-sm text-gray-500">
-        <h3 className="font-medium mb-2">Testavimo instrukcijos:</h3>
-        <ol className="list-decimal list-inside space-y-1">
-          <li>Pasirinkite sritį ir įveskite temą</li>
-          <li>Spauskite &ldquo;Generuoti&rdquo; ir stebėkite kaip tekstas atsiranda palaipsniui (streaming)</li>
-          <li>Tekstas turi būti lietuviškas ir su raginimu veikti (CTA)</li>
-          <li>Po 50 generavimų turėtų rodyti limito klaidą</li>
-        </ol>
-      </div>
+      {/* Action Buttons */}
+      <ActionButtons
+        onCopy={handleCopy}
+        onRegenerate={handleRegenerate}
+        canCopy={!!generatedText && !isLoading}
+        canRegenerate={!!generatedText}
+        isLoading={isLoading}
+      />
     </main>
   );
 }
