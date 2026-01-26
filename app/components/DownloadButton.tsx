@@ -5,7 +5,7 @@ import { toPng, toJpeg } from 'html-to-image';
 import toast from 'react-hot-toast';
 
 interface DownloadButtonProps {
-  previewRef: React.RefObject<HTMLElement>;
+  previewRef: React.RefObject<HTMLDivElement | null>;
   imageUrl: string | null;
   industry: string;
   disabled?: boolean;
