@@ -13,7 +13,7 @@ This roadmap delivers an AI-powered social media post generator for Lithuanian s
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & API** - Secure OpenAI integration with streaming, rate limiting, and cost controls ✓
-- [ ] **Phase 2: Core Generator** - Complete text-only post generator workflow with mobile-first UI
+- [x] **Phase 2: Core Generator** - Complete text-only post generator workflow with mobile-first UI ✓
 - [ ] **Phase 3: Image & Preview** - Image upload, social media preview, and export functionality
 
 ## Phase Details
@@ -45,11 +45,12 @@ Plans:
   3. User can copy generated text with one click and see success confirmation
   4. User can regenerate or edit text inline if not satisfied
   5. Entire workflow completes in under 60 seconds from landing to copy
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: TBD during planning
-- [ ] 02-02: TBD during planning
+- [x] 02-01-PLAN.md - Industry autocomplete with Fuse.js, useLocalStorage hook, industries data ✓
+- [x] 02-02-PLAN.md - Post configuration component (tone/emoji/length) + toast notifications setup ✓
+- [x] 02-03-PLAN.md - Main page assembly with streaming display, action buttons, mobile layout ✓
 
 ### Phase 3: Image & Preview
 **Goal**: Image upload with social media preview and download capability
@@ -75,9 +76,9 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & API | 3/3 | ✓ Complete | 2026-01-25 |
-| 2. Core Generator | 0/TBD | Ready to plan | - |
-| 3. Image & Preview | 0/TBD | Not started | - |
+| 2. Core Generator | 3/3 | ✓ Complete | 2026-01-26 |
+| 3. Image & Preview | 0/TBD | Ready to plan | - |
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-01-25 after Phase 1 completion*
+*Last updated: 2026-01-26 after Phase 2 completion*
