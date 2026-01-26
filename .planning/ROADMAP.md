@@ -62,11 +62,12 @@ Plans:
   3. User can preview complete post in Facebook/Instagram mock format
   4. User can toggle preview between mobile and desktop views
   5. Preview shows uploaded image combined with generated text in realistic social format
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD during planning
-- [ ] 03-02: TBD during planning
+- [ ] 03-01-PLAN.md - Image upload component with react-dropzone and DALL-E API endpoint
+- [ ] 03-02-PLAN.md - Social preview components (Facebook/Instagram) with mobile/desktop toggle
+- [ ] 03-03-PLAN.md - Main page integration with download functionality
 
 ## Progress
 
@@ -77,8 +78,8 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Foundation & API | 3/3 | ✓ Complete | 2026-01-25 |
 | 2. Core Generator | 3/3 | ✓ Complete | 2026-01-26 |
-| 3. Image & Preview | 0/TBD | Ready to plan | - |
+| 3. Image & Preview | 0/3 | Ready to execute | - |
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-01-26 after Phase 2 completion*
+*Last updated: 2026-01-26 after Phase 3 planning*
