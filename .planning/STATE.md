@@ -12,16 +12,16 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 Phase: 3 of 3 (Image & Preview)
 Plan: 2 of 3 complete
 Status: In progress
-Last activity: 2026-01-26 — Completed 03-02-PLAN.md
+Last activity: 2026-01-26 — Completed 03-01-PLAN.md
 
-Progress: [███████░░░] 78%
+Progress: [████████░░] 89%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 10.6 minutes
-- Total execution time: 1.24 hours
+- Total plans completed: 8
+- Average duration: 9.8 minutes
+- Total execution time: 1.31 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [███████░░░] 78%
 |-------|-------|-------|----------|
 | 1 - Foundation & API | 3/3 | 29 min | 9.7 min |
 | 2 - Core Generator | 3/3 | 40 min | 13.3 min |
-| 3 - Image & Preview | 1/3 | 3 min | 3.0 min |
+| 3 - Image & Preview | 2/3 | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (12m), 02-02 (13m), 02-03 (15m), 03-02 (3m)
+- Last 5 plans: 02-02 (13m), 02-03 (15m), 03-02 (3m), 03-01 (4m)
 - Trend: Excellent velocity on Phase 3
 
 *Updated after each plan completion*
@@ -65,6 +65,11 @@ Recent decisions affecting current work:
 - 02-03: Sticky bottom ActionButtons with z-50 (mobile thumb accessibility)
 - 02-03: 20 Lithuanian industry categories (expanded based on user feedback)
 - 02-03: Industry persistence with useLocalStorage (returning user convenience)
+- 03-01: English prompts for DALL-E (better results per RESEARCH.md)
+- 03-01: Direct OpenAI client for images.generate (not in @ai-sdk/openai)
+- 03-01: 5MB file size limit for uploads
+- 03-01: Standard quality default for DALL-E (HD optional)
+- 03-01: Natural style for DALL-E (professional social media aesthetic)
 - 03-02: Tab-style toggle for mobile/desktop switching (matches PostConfiguration pattern)
 - 03-02: Simplified mock preview style with minimal headers (legal-safe, recognizable)
 - 03-02: Generic neutral colors avoiding exact platform branding (legal consideration)
@@ -93,14 +98,15 @@ None yet.
 - All success criteria met: 60-second workflow from land to copy functional
 
 **Phase 3:** IN PROGRESS
-- Plan 03-01 incomplete - utilities committed but ImageUpload/ImageSource components need SUMMARY
+- Plan 03-01 complete - image upload with react-dropzone, DALL-E generation endpoint
 - Plan 03-02 complete - social preview components (Facebook, Instagram) with mobile/desktop toggle
 - DALL-E content policy behavior with Lithuanian prompts unpredictable (deferred to v2)
+- OPENAI_API_KEY required for image generation (upload works independently)
 
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 03-02-PLAN.md
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
 
 Config:
