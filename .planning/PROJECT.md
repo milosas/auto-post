@@ -1,5 +1,19 @@
 # Social Post Generator
 
+## Current State
+
+**Shipped:** v1 MVP (2026-01-27)
+**Status:** Production-ready, awaiting deployment
+
+**What v1 delivers:**
+- AI-powered post generator for Lithuanian service providers
+- 20 industry categories with fuzzy autocomplete
+- Streaming text generation with visual feedback
+- Image upload (drag-drop) and DALL-E AI generation
+- Facebook/Instagram social preview
+- Multi-format download (PNG/JPEG)
+- Complete 60-second workflow from landing to download
+
 ## What This Is
 
 A fast, simple tool for small service providers (beauty specialists, trainers, physiotherapists, massage therapists) to create professional Facebook/Instagram posts with AI assistance. Users select their industry, upload or generate an image, configure post settings, and get AI-generated Lithuanian text ready to copy and use.
@@ -12,24 +26,24 @@ Users can generate a professional, industry-appropriate social media post in und
 
 ### Validated
 
-(None yet — ship to validate)
+- Industry selection with 20 Lithuanian categories — v1
+- Image upload (JPG/PNG/WebP, max 5MB) with drag & drop — v1
+- AI image generation via DALL-E with "generate from text" — v1
+- Post configuration (topic, tone, emoji, length) — v1
+- Streaming text generation in Lithuanian — v1
+- One-click copy with toast confirmation — v1
+- Regenerate text functionality — v1
+- Facebook/Instagram mock preview — v1
+- Mobile/desktop preview toggle — v1
+- Responsive mobile-first design — v1
+- Loading states during AI generation — v1
+- Toast notifications for actions — v1
+- Secured API keys (server-side only) — v1
+- Rate limiting for cost protection — v1
 
 ### Active
 
-- [ ] User can select their industry from predefined categories
-- [ ] User can upload an image (JPG, PNG, WebP, max 5MB) with drag & drop or click
-- [ ] User can generate an AI image using a text prompt
-- [ ] User can see pre-made prompt suggestions based on selected industry
-- [ ] User can configure post settings (topic, tone, emoji usage, length)
-- [ ] User can generate AI-written post text in Lithuanian
-- [ ] User can copy generated text with one click
-- [ ] User can regenerate post text if not satisfied
-- [ ] User can edit generated text inline
-- [ ] User can preview post in Facebook/Instagram mock format
-- [ ] User can toggle preview between mobile and desktop view
-- [ ] App works on mobile devices (responsive design)
-- [ ] App shows loading states during AI generation
-- [ ] App shows toast notifications for actions (copy success, errors)
+(None — awaiting user feedback from v1 deployment)
 
 ### Out of Scope
 
@@ -37,52 +51,61 @@ Users can generate a professional, industry-appropriate social media post in und
 - Post scheduling — users copy/paste manually
 - Direct posting to social media — requires OAuth complexity
 - Analytics / tracking — not needed for MVP
-- Templates library — future feature
+- Templates library — future feature (v2)
 - Multi-language beyond Lithuanian — LT only for now
 - Team collaboration — single-user tool
-- Image crop functionality — upload as-is for MVP
+- Image crop functionality — upload as-is
+- Inline text editing — user regenerates instead (tech debt from v1)
 
 ## Context
 
+**Shipped:** v1 MVP with 1,768 LOC TypeScript across 22 source files.
+
+**Tech stack:**
+- Next.js 15 with Edge Runtime
+- OpenAI API for streaming text generation
+- DALL-E 3 for AI image generation
+- Upstash Redis for rate limiting (optional)
+- Fuse.js for industry autocomplete
+- html-to-image for preview export
+- react-dropzone for image upload
+- react-hot-toast for notifications
+
 **Target Users:** Lithuanian small service providers who need to post regularly on social media but struggle with content creation. They're busy professionals, not marketers.
 
-**Industry Categories:**
-- Grožio specialistai (kirpėjai, kosmetologai, nagų meistrai)
-- Treneriai (fitness, joga, personaliniai)
-- Kineziterapeutai
-- Masažistai
-- Kita (custom input)
-
-**Post Settings:**
-- Tone: Profesionalus / Draugiškas / Motyvuojantis / Humoristinis
-- Emoji: Taip / Ne / Minimaliai
-- Length: Trumpas / Vidutinis / Ilgas
-- Language: Lithuanian (fixed for MVP)
-
-**Technical Environment:**
-- React + Vite + Tailwind CSS frontend
-- Vercel deployment with serverless API routes
-- OpenAI API via kie.ai proxy for text generation
-- DALL-E 3 via OpenAI API for image generation
-- No database needed — all client-side state
+**Industry Categories (20):**
+Grožio specialistai, Treneriai, Kineziterapeutai, Masažistai, Psichologai, Fotografai, Floristai, Renginių organizatoriai, Virtuvės šefai, Interjero dizaineriai, Nekilnojamo turto agentai, Veterinarai, Buhalteriai, Teisininkai, Programuotojai, Dizaineriai, Konditeriai, Korepetitoriai, Valymo paslaugos, Kita
 
 ## Constraints
 
-- **API:** OpenAI via kie.ai proxy — base URL is `https://api.kie.ai/v1`
-- **Deployment:** Vercel — affects API route structure (`/api/*.js`)
-- **Language:** Lithuanian only — prompts and UI in LT
-- **No Auth:** Single page, no user accounts, no persistent storage
-- **Image Size:** Max 5MB uploads to keep things fast
+- **API:** OpenAI direct API for text generation
+- **Deployment:** Vercel with Edge Runtime
+- **Language:** Lithuanian only
+- **No Auth:** Single page, no user accounts
+- **Image Size:** Max 5MB uploads
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| DALL-E 3 over Flux | Same OpenAI API, simpler single integration | — Pending |
-| Skip image crop for MVP | Reduces complexity, users can crop before upload | — Pending |
-| kie.ai proxy over direct OpenAI | User's existing setup, cost management | — Pending |
-| No routing (SPA) | Single flow, no need for pages | — Pending |
-| Vercel serverless | Free tier, simple deployment, API routes built-in | — Pending |
+| Direct OpenAI for text generation | Simpler setup than proxy | Good |
+| Edge Runtime for streaming | 25s timeout vs 10s serverless | Good |
+| Optional rate limiting | Graceful degradation in dev | Good |
+| DALL-E 3 over Flux | Same OpenAI API, simpler integration | Good |
+| Skip image crop | Users can crop before upload | Good |
+| No routing (SPA) | Single flow, no need for pages | Good |
+| Fuse.js for autocomplete | Typo-tolerant industry search | Good |
+| html-to-image for export | DOM to PNG/JPEG conversion | Good |
+| 20 industry categories | Broad coverage per user feedback | Good |
+
+## Tech Debt
+
+Tracked for future cleanup:
+
+- **OUT-03:** Inline text editing not implemented — user must regenerate entire post
+- **.env.example:** References KIEAI_API_KEY but implementation uses OPENAI_API_KEY
+- **Duplicate CSS:** ActionButtons has both fixed positioning and is wrapped in fixed div
+- **Image optimization:** Using `<img>` instead of `next/image`
 
 ---
-*Last updated: 2026-01-25 after initialization*
+*Last updated: 2026-01-27 after v1 milestone completion*
