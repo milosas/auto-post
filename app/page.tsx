@@ -201,6 +201,43 @@ export default function HomePage() {
     }
   };
 
+  // Generate image based on already generated text
+  const handleGenerateImageFromText = async () => {
+    if (!generatedText.trim()) {
+      toast.error('Pirma sugeneruokite tekstą');
+      return;
+    }
+
+    setIsGeneratingImage(true);
+
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          industry,
+          prompt: generatedText.slice(0, 500), // Use generated text as prompt (limit length)
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Paveikslelio generavimo klaida');
+        return;
+      }
+
+      const data = await response.json();
+      setImageUrl(data.imageUrl);
+      setImageSource('ai'); // Switch to AI mode to display the generated image
+      toast.success('Paveikslėlis sugeneruotas pagal įrašą');
+    } catch (err) {
+      toast.error('Nepavyko sugeneruoti paveikslelio');
+      console.error('Image generation from text error:', err);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   return (
     <main className="min-h-screen flex flex-col">
       <div className="flex-1 p-4 pb-32 max-w-2xl mx-auto w-full">
@@ -287,6 +324,37 @@ export default function HomePage() {
           <h2 className="text-lg font-medium mb-3">Sugeneruotas tekstas</h2>
           <StreamingDisplay text={generatedText} isLoading={isLoading} />
         </section>
+
+        {/* Generate Image from Text Button - shows when text exists but no image */}
+        {generatedText && !displayImageUrl && !isLoading && (
+          <section className="mb-6">
+            <button
+              onClick={handleGenerateImageFromText}
+              disabled={isGeneratingImage}
+              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:from-purple-400 disabled:to-pink-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            >
+              {isGeneratingImage ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generuojamas paveikslėlis...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Generuoti paveikslėlį pagal įrašą
+                </>
+              )}
+            </button>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              AI sukurs paveikslėlį pagal sugeneruotą tekstą
+            </p>
+          </section>
+        )}
 
         {/* Social Preview */}
         <section className="mb-6">
