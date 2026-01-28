@@ -181,8 +181,103 @@ export default function HomePage() {
     await navigator.clipboard.writeText(generatedText);
   };
 
-  const handleRegenerate = () => {
-    handleGenerate();
+  // Regenerate only text (independent of image)
+  const handleRegenerateText = async () => {
+    if (!prompt.trim()) {
+      toast.error('Įveskite temą');
+      return;
+    }
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
+    setIsLoading(true);
+    setGeneratedText('');
+    setError(null);
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          industry,
+          prompt,
+          tone: config.tone,
+          emoji: config.emoji,
+          length: config.length,
+        }),
+        signal: abortControllerRef.current!.signal,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Generavimo klaida');
+        return;
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        toast.error('Streaming nepalaikomas');
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        setGeneratedText((prev) => prev + chunk);
+      }
+
+      toast.success('Įrašas sugeneruotas');
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        toast.error('Generavimo klaida');
+        console.error('Text regeneration error:', err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Regenerate only image (independent of text)
+  const handleRegenerateImage = async () => {
+    const imagePrompt = generatedText.trim() || prompt.trim();
+    if (!imagePrompt) {
+      toast.error('Įveskite temą arba pirma sugeneruokite tekstą');
+      return;
+    }
+
+    setIsGeneratingImage(true);
+
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          industry,
+          prompt: imagePrompt.slice(0, 500),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Paveikslelio generavimo klaida');
+        return;
+      }
+
+      const data = await response.json();
+      setImageUrl(data.imageUrl);
+      setImageSource('ai');
+      toast.success('Paveikslėlis sugeneruotas');
+    } catch (err) {
+      toast.error('Nepavyko sugeneruoti paveikslelio');
+      console.error('Image regeneration error:', err);
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   const handleImageSourceChange = (newSource: 'upload' | 'ai') => {
@@ -382,10 +477,13 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto space-y-3">
           <ActionButtons
             onCopy={handleCopy}
-            onRegenerate={handleRegenerate}
+            onRegenerateText={handleRegenerateText}
+            onRegenerateImage={handleRegenerateImage}
             canCopy={!!generatedText && !isLoading}
-            canRegenerate={!!generatedText}
-            isLoading={isLoading || isGeneratingImage}
+            canRegenerateText={!!prompt.trim()}
+            canRegenerateImage={!!(generatedText.trim() || prompt.trim())}
+            isLoadingText={isLoading}
+            isLoadingImage={isGeneratingImage}
           />
           <DownloadButton
             previewRef={previewRef}

@@ -4,13 +4,25 @@ import toast from 'react-hot-toast';
 
 interface Props {
   onCopy: () => Promise<void> | void;
-  onRegenerate: () => void;
+  onRegenerateText: () => void;
+  onRegenerateImage: () => void;
   canCopy: boolean;
-  canRegenerate: boolean;
-  isLoading: boolean;
+  canRegenerateText: boolean;
+  canRegenerateImage: boolean;
+  isLoadingText: boolean;
+  isLoadingImage: boolean;
 }
 
-export function ActionButtons({ onCopy, onRegenerate, canCopy, canRegenerate, isLoading }: Props) {
+export function ActionButtons({
+  onCopy,
+  onRegenerateText,
+  onRegenerateImage,
+  canCopy,
+  canRegenerateText,
+  canRegenerateImage,
+  isLoadingText,
+  isLoadingImage
+}: Props) {
   const handleCopy = async () => {
     try {
       await onCopy();
@@ -21,23 +33,28 @@ export function ActionButtons({ onCopy, onRegenerate, canCopy, canRegenerate, is
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 p-4 bg-white border-t shadow-lg z-50">
-      <div className="max-w-2xl mx-auto flex gap-2">
-        <button
-          onClick={handleCopy}
-          disabled={!canCopy || isLoading}
-          className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-        >
-          Kopijuoti
-        </button>
-        <button
-          onClick={onRegenerate}
-          disabled={!canRegenerate || isLoading}
-          className="py-3 px-4 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Generuoti iš naujo
-        </button>
-      </div>
+    <div className="flex gap-2">
+      <button
+        onClick={handleCopy}
+        disabled={!canCopy || isLoadingText || isLoadingImage}
+        className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+      >
+        Kopijuoti
+      </button>
+      <button
+        onClick={onRegenerateText}
+        disabled={!canRegenerateText || isLoadingText}
+        className="py-3 px-4 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+      >
+        {isLoadingText ? 'Generuojama...' : 'Naujas įrašas'}
+      </button>
+      <button
+        onClick={onRegenerateImage}
+        disabled={!canRegenerateImage || isLoadingImage}
+        className="py-3 px-4 border border-purple-300 text-purple-700 rounded-lg font-medium hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+      >
+        {isLoadingImage ? 'Generuojama...' : 'Naujas paveikslėlis'}
+      </button>
     </div>
   );
 }
