@@ -31,10 +31,10 @@ export function IndustryAutocomplete({
 
   const suggestions = useMemo(() => {
     if (!value || value.length < 2) {
-      return INDUSTRIES.slice(0, 5);
+      return [...INDUSTRIES]; // Rodyti visas industrijas
     }
     const results = fuse.search(value);
-    return results.slice(0, 5).map((result) => result.item);
+    return results.map((result) => result.item); // Rodyti visus rezultatus
   }, [value, fuse]);
 
   const handleFocus = () => {
