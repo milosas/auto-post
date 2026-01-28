@@ -10,14 +10,12 @@ import { ImageUpload } from './components/ImageUpload';
 import { SocialPreview } from './components/SocialPreview';
 import { DownloadButton } from './components/DownloadButton';
 import { GenerationOptions } from './components/GenerationOptions';
-import { useLocalStorage } from './lib/useLocalStorage';
 import { useImagePreview } from './lib/image-utils';
 import { INDUSTRIES } from './lib/industries';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
-  const [industry, setIndustryRaw] = useLocalStorage('lastIndustry', INDUSTRIES[0]);
-  const setIndustry = (value: string) => setIndustryRaw(value as any);
+  const [industry, setIndustry] = useState('');
   const [prompt, setPrompt] = useState('');
   const [config, setConfig] = useState<PostConfigurationValues>({
     tone: 'friendly',
