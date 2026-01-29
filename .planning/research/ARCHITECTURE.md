@@ -1,709 +1,743 @@
-# Architecture Patterns
+# Architecture Research: v2.0 User System + Payments Integration
 
-**Domain:** AI Social Media Post Generator
-**Researched:** 2026-01-25
-**Confidence:** HIGH
+**Project:** Social Post Generator v2.0
+**Researched:** 2026-01-29
+**Focus:** Adding auth, database, and Stripe to existing Next.js 15 + Vercel architecture
 
-## Executive Summary
+## Current Architecture (v1.0)
 
-AI content generators follow a three-tier architecture: **Frontend UI Layer** (user input and preview), **API Gateway Layer** (serverless functions), and **AI Service Layer** (OpenAI/DALL-E integration). Your proposed React + Vite + Vercel serverless structure aligns well with 2026 best practices.
-
-**Critical pattern:** Unidirectional data flow with client-side state management, streaming responses for better UX, and security-first API design (never expose API keys client-side).
-
-## Recommended Architecture
-
-### System Overview
-
+### Existing Structure
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     CLIENT (Browser)                         │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  React SPA (Vite)                                      │ │
-│  │  - Industry selection & settings                       │ │
-│  │  - Image upload/generation                             │ │
-│  │  - Post preview & output                               │ │
-│  │  - Client-side state (no database)                     │ │
-│  └────────────────────────────────────────────────────────┘ │
-│                          ↕ HTTPS                             │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│              API GATEWAY (Vercel Serverless)                 │
-│  ┌──────────────────┐         ┌──────────────────┐         │
-│  │ /api/            │         │ /api/            │         │
-│  │ generate-post.js │         │ generate-image.js│         │
-│  │ - Validation     │         │ - Validation     │         │
-│  │ - Rate limiting  │         │ - Rate limiting  │         │
-│  │ - Streaming      │         │ - Image handling │         │
-│  └──────────────────┘         └──────────────────┘         │
-│           ↓                            ↓                     │
-└─────────────────────────────────────────────────────────────┘
-            ↓                            ↓
-┌───────────────────────┐    ┌───────────────────────┐
-│   OpenAI API          │    │   DALL-E 3 API        │
-│   (via kie.ai proxy)  │    │   (via kie.ai proxy)  │
-│   - Text generation   │    │   - Image generation  │
-│   - Streaming support │    │   - Base64 response   │
-└───────────────────────┘    └───────────────────────┘
+app/
+├── page.tsx                    # Single page app, no routing
+├── api/
+│   ├── generate/route.ts       # Text generation (Edge Runtime)
+│   └── generate-image/route.ts # DALL-E image generation (Edge Runtime)
+├── components/                 # 13 UI components
+├── lib/
+│   ├── ai.ts                   # OpenAI client config
+│   ├── rate-limit.ts          # Upstash Redis rate limiting
+│   ├── industries.ts          # Industry categories
+│   └── useLocalStorage.ts     # Client state persistence
+└── globals.css
 ```
 
-### Data Flow Direction
+### Current Characteristics
+- **Runtime:** Edge Runtime (25s timeout vs 10s serverless)
+- **State Management:** React useState + localStorage (no global store mentioned, despite zustand in PROJECT.md)
+- **Rate Limiting:** IP-based via Upstash Redis (50/day, optional)
+- **No routing:** Conditional rendering within single page
+- **No auth:** Anonymous usage
+- **No database:** Stateless, no persistence beyond rate limiting
 
-**CRITICAL:** Follow unidirectional data flow (parent → child via props, child → parent via callbacks).
+### Deployment
+- **Platform:** Vercel
+- **Functions:** Edge Functions for API routes
+- **Storage:** None (stateless)
 
+## Integration Architecture for v2.0
+
+### Authentication Layer
+
+#### Recommended Solution: Clerk
+**Why Clerk over NextAuth/Auth.js:**
+- **Edge Runtime Native:** Clerk is edge-native, avoiding NextAuth's Edge compatibility issues
+- **OAuth Built-In:** Google + Facebook OAuth without manual provider configuration
+- **Middleware Support:** Full middleware support without JWT/database adapter split
+- **DX:** Component-first approach matches existing React pattern
+- **Session Management:** HTTP-only cookies, automatic refresh
+
+**Integration Points:**
 ```
-User Input
-    ↓
-Form Components (IndustrySelector, ImageUploader, PostSettings)
-    ↓ (via callbacks)
-App.jsx (State Management - single source of truth)
-    ↓ (trigger API call via hooks)
-useGeneratePost / useGenerateImage
-    ↓ (HTTP POST)
-Vercel API Routes (/api/generate-post.js, /api/generate-image.js)
-    ↓ (external API call with streaming)
-OpenAI / DALL-E (via kie.ai)
-    ↓ (stream chunks back)
-Custom Hooks (update state incrementally)
-    ↓ (state update triggers re-render)
-Output Components (PostOutput, PreviewCard)
-    ↓
-User sees result (with streaming for better UX)
+middleware.ts (NEW)              # Clerk middleware for route protection
+app/layout.tsx (MODIFY)          # Wrap with <ClerkProvider>
+app/sign-in/[[...sign-in]]/page.tsx (NEW)   # Sign-in route
+app/sign-up/[[...sign-up]]/page.tsx (NEW)   # Sign-up route
+app/dashboard/page.tsx (NEW)     # Protected dashboard route
 ```
 
-## Component Boundaries
+**Auth State Flow:**
+1. Clerk middleware intercepts all requests
+2. Session validated via HTTP-only cookies (edge-compatible)
+3. User object available in Server Components via `auth()`
+4. Client components access via `useUser()` hook
+5. API routes validate via `auth()` helper
 
-### Frontend Components (React)
+**Route Protection Pattern:**
+```typescript
+// middleware.ts
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-| Component | Responsibility | Receives (Props) | Sends (Events) | State |
-|-----------|---------------|------------------|----------------|-------|
-| **App.jsx** | Root orchestrator, owns all state | - | - | Industry, image, settings, generated post, loading states |
-| **IndustrySelector** | Display industry options | `onSelect`, `selectedIndustry` | `onSelect(industry)` | None (stateless) |
-| **ImageUploader** | Handle image file upload | `onUpload`, `uploadedImage` | `onUpload(imageFile)` | None (stateless) |
-| **ImageGenerator** | Trigger DALL-E image generation | `onGenerate`, `generatedImage`, `isLoading` | `onGenerate(prompt)` | None (stateless) |
-| **PostSettings** | Capture tone, length, CTA preferences | `onChange`, `currentSettings` | `onChange(settings)` | None (stateless) |
-| **PostOutput** | Display generated text with copy/edit | `postText`, `onEdit` | `onEdit(newText)` | Internal edit mode only |
-| **PreviewCard** | Social media preview simulation | `postText`, `image`, `platform` | - | None (stateless) |
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/api/generate-user(.*)',  // User-specific endpoints
+])
 
-**Pattern:** Presentational/Container separation. All form components are **presentational** (receive props, emit events). App.jsx is the **container** (owns state, orchestrates logic).
+export default clerkMiddleware((auth, req) => {
+  if (isProtectedRoute(req)) auth().protect()
+})
 
-### Custom Hooks (React)
+export const config = {
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
+}
+```
 
-| Hook | Purpose | Returns | Side Effects |
-|------|---------|---------|--------------|
-| **useGeneratePost** | API call to generate-post.js | `{ postText, isLoading, error, generatePost() }` | HTTP POST, state updates via streaming |
-| **useGenerateImage** | API call to generate-image.js | `{ imageUrl, isLoading, error, generateImage() }` | HTTP POST, returns base64/URL |
+**Security Considerations:**
+- **CVE-2025-29927:** Never rely solely on middleware for auth (Next.js 15.2.3+ required)
+- **Data Access Layer:** Verify auth at every data access point, not just middleware
+- **Layout Caveat:** Layouts don't re-render on navigation - check auth close to data source
 
-**Pattern:** Hooks encapsulate API logic and streaming state management, keeping components clean.
+### Database Layer
 
-### Utility Modules
+#### Recommended Solution: Vercel Postgres + Drizzle ORM
+**Why this stack:**
+- **Edge Compatible:** Drizzle natively supports Edge Runtime with `@vercel/postgres` driver
+- **Type Safety:** TypeScript-first ORM matching existing codebase
+- **Vercel Integration:** Seamless setup, same region deployment
+- **Migration DX:** Better migration story than Prisma for rapid iteration
 
-| Module | Purpose | Exports |
-|--------|---------|---------|
-| **utils/api.js** | HTTP client configuration | `apiClient` (fetch wrapper with error handling) |
-| **utils/prompts.js** | Prompt templates for OpenAI | `buildPostPrompt(industry, settings)`, `buildImagePrompt(industry, description)` |
+**Integration Points:**
+```
+db/
+├── schema.ts (NEW)              # Drizzle schema definitions
+├── index.ts (NEW)               # Database client + connection
+└── migrations/ (NEW)            # SQL migrations
 
-### Backend (Vercel Serverless Functions)
+app/api/
+├── generate/route.ts (MODIFY)   # Add user_id, save to posts table
+├── generate-image/route.ts (MODIFY) # Link image to post record
+└── webhooks/stripe/route.ts (NEW)   # Stripe webhook handler
+```
 
-| Function | HTTP Method | Input | Output | External Calls |
-|----------|-------------|-------|--------|----------------|
-| **/api/generate-post.js** | POST | `{ industry, tone, length, cta, imageDescription }` | Streaming text response (SSE) | OpenAI Chat Completions (via kie.ai) |
-| **/api/generate-image.js** | POST | `{ prompt, size }` | JSON: `{ imageUrl }` | DALL-E 3 (via kie.ai) |
+**Database Schema:**
 
-**Security:** API keys stored in Vercel environment variables, never exposed to client.
+```typescript
+// db/schema.ts
+import { pgTable, text, timestamp, integer, jsonb, index } from 'drizzle-orm/pg-core'
 
-## Architectural Patterns to Follow
+export const users = pgTable('users', {
+  id: text('id').primaryKey(), // Clerk user ID
+  email: text('email').notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
-### Pattern 1: Synchronous Streaming Response
+export const subscriptions = pgTable('subscriptions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id).notNull(),
+  stripeCustomerId: text('stripe_customer_id').notNull(),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  stripePriceId: text('stripe_price_id'),
+  status: text('status').notNull(), // active, canceled, past_due, etc.
+  planType: text('plan_type').notNull(), // free, pro, premium
+  currentPeriodStart: timestamp('current_period_start'),
+  currentPeriodEnd: timestamp('current_period_end'),
+  cancelAtPeriodEnd: boolean('cancel_at_period_end').default(false),
+  credits: integer('credits').default(0), // For credit-based system
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index('subscription_user_idx').on(table.userId),
+  customerIdx: index('subscription_customer_idx').on(table.stripeCustomerId),
+}))
 
-**What:** Progressive display of AI-generated text as it arrives (like ChatGPT).
+export const posts = pgTable('posts', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id).notNull(),
+  industry: text('industry').notNull(),
+  prompt: text('prompt').notNull(),
+  generatedText: text('generated_text').notNull(),
+  config: jsonb('config').notNull(), // { tone, emoji, length }
+  imageUrl: text('image_url'),
+  imageSource: text('image_source'), // 'upload' | 'ai'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  userCreatedIdx: index('post_user_created_idx').on(table.userId, table.createdAt),
+}))
 
-**Why:** Better UX. Waiting 5-10 seconds for a complete response feels slow; streaming makes the app feel instant.
+export const usageLimits = pgTable('usage_limits', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id).notNull(),
+  date: text('date').notNull(), // YYYY-MM-DD
+  textGenerations: integer('text_generations').default(0),
+  imageGenerations: integer('image_generations').default(0),
+}, (table) => ({
+  userDateIdx: index('usage_user_date_idx').on(table.userId, table.date),
+}))
+```
 
-**How (Backend):**
-```javascript
-// /api/generate-post.js
-export default async function handler(req, res) {
-  const { industry, tone, length } = req.body;
+**Connection Setup (Edge Compatible):**
+```typescript
+// db/index.ts
+import { drizzle } from 'drizzle-orm/vercel-postgres'
+import { sql } from '@vercel/postgres'
+import * as schema from './schema'
 
-  // Set headers for Server-Sent Events (SSE)
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
+export const db = drizzle(sql, { schema })
+```
 
-  const response = await fetch('https://api.kie.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-4',
-      messages: [{ role: 'user', content: buildPrompt(industry, tone, length) }],
-      stream: true // Enable streaming
-    })
-  });
+**Data Flow Changes:**
+1. **Before (v1.0):** Request → Validate → Generate → Stream response
+2. **After (v2.0):** Request → Auth check → Usage check → Generate → Save to DB → Stream response
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
+### Payments Layer
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+#### Recommended Solution: Stripe with Webhooks
+**Why Stripe:**
+- **Standard:** Industry standard for SaaS payments
+- **Subscriptions:** Built-in subscription management
+- **Credits:** Can track via Stripe metadata + local DB
+- **Webhooks:** Reliable event-driven architecture
 
-    const chunk = decoder.decode(value);
-    res.write(`data: ${chunk}\n\n`); // SSE format
+**Integration Points:**
+```
+app/api/
+├── checkout/route.ts (NEW)          # Create Stripe checkout session
+├── portal/route.ts (NEW)            # Customer portal redirect
+└── webhooks/stripe/route.ts (NEW)   # Webhook handler (Node runtime!)
+
+app/dashboard/
+├── page.tsx (NEW)                   # Post history
+├── billing/page.tsx (NEW)           # Subscription management
+```
+
+**Stripe Webhook Architecture:**
+
+**CRITICAL: Webhooks must use Node.js Runtime, not Edge**
+```typescript
+// app/api/webhooks/stripe/route.ts
+import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
+
+// IMPORTANT: Edge Runtime doesn't support raw body parsing for signature verification
+export const runtime = 'nodejs' // NOT 'edge'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-12-18.acacia',
+})
+
+export async function POST(request: Request) {
+  // Must use request.text(), NOT request.json()
+  const body = await request.text()
+  const sig = request.headers.get('stripe-signature')!
+
+  let event: Stripe.Event
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    )
+  } catch (err) {
+    return NextResponse.json(
+      { error: `Webhook Error: ${err.message}` },
+      { status: 400 }
+    )
   }
 
-  res.end();
+  // Handle events
+  switch (event.type) {
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated':
+      // Update subscriptions table
+      break
+    case 'customer.subscription.deleted':
+      // Set status to 'canceled'
+      break
+    case 'invoice.payment_succeeded':
+      // Reset usage limits, add credits
+      break
+    case 'invoice.payment_failed':
+      // Update status to 'past_due'
+      break
+  }
+
+  return NextResponse.json({ received: true })
 }
 ```
 
-**How (Frontend Hook):**
-```javascript
-// /src/hooks/useGeneratePost.js
-export function useGeneratePost() {
-  const [postText, setPostText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+**Subscription Flow:**
+1. User clicks "Upgrade" in dashboard
+2. `POST /api/checkout` creates Stripe Checkout Session
+3. User redirects to Stripe, completes payment
+4. Stripe sends `customer.subscription.created` webhook
+5. Webhook handler updates `subscriptions` table
+6. User redirects back to dashboard, sees updated plan
 
-  const generatePost = async (settings) => {
-    setIsLoading(true);
-    setPostText('');
+**Local Database vs Stripe API:**
+- **Store locally:** subscription ID, status, plan type, period dates, credits
+- **Query Stripe API:** Billing history, invoices (only on billing page)
+- **Webhook sync:** Keep local status in sync with Stripe events
 
-    const response = await fetch('/api/generate-post', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settings)
-    });
+### Usage Tracking & Limits
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+#### Current Implementation (v1.0):
+- IP-based rate limiting via Upstash Redis
+- 50 requests/day per IP
+- No user tracking
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+#### New Implementation (v2.0):
+- **Free tier:** 3 generations/day per user
+- **Paid tier:** Unlimited or credit-based
+- Track in `usage_limits` table by user + date
+- Check before generation, increment after success
 
-      const chunk = decoder.decode(value);
-      // Parse SSE format and extract text
-      const text = parseSSEChunk(chunk);
-      setPostText(prev => prev + text); // Append incrementally
+**Modified Rate Limiting:**
+```typescript
+// app/api/generate/route.ts (MODIFY)
+import { auth } from '@clerk/nextjs/server'
+import { db } from '@/db'
+import { usageLimits, subscriptions } from '@/db/schema'
+import { eq, and } from 'drizzle-orm'
+
+export const runtime = 'edge'
+export const maxDuration = 25
+
+export async function POST(request: Request) {
+  // 1. Authenticate
+  const { userId } = await auth()
+  if (!userId) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 2. Check subscription status
+  const [subscription] = await db
+    .select()
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, userId))
+    .limit(1)
+
+  const planType = subscription?.planType || 'free'
+
+  // 3. Check usage limits (free tier only)
+  if (planType === 'free') {
+    const today = new Date().toISOString().split('T')[0]
+    const [usage] = await db
+      .select()
+      .from(usageLimits)
+      .where(
+        and(
+          eq(usageLimits.userId, userId),
+          eq(usageLimits.date, today)
+        )
+      )
+      .limit(1)
+
+    if (usage && usage.textGenerations >= 3) {
+      return Response.json(
+        { error: 'Daily limit reached. Upgrade to continue.' },
+        { status: 429 }
+      )
     }
+  }
 
-    setIsLoading(false);
-  };
+  // 4. Generate (existing logic)
+  const body = await request.json()
+  const result = streamText({ /* ... */ })
 
-  return { postText, isLoading, generatePost };
+  // 5. Save to database (after successful generation)
+  // TODO: Increment usage, save post
+
+  return result.toTextStreamResponse()
 }
 ```
 
-**Sources:**
-- [Serverless generative AI architectural patterns – Part 1](https://aws.amazon.com/blogs/compute/serverless-generative-ai-architectural-patterns/)
-- [AI UI Patterns](https://www.patterns.dev/react/ai-ui-patterns/)
-- [Build a GPT-3 app with Next.js and Vercel Edge Functions](https://vercel.com/blog/gpt-3-app-next-js-vercel-edge-functions)
+## New Components Needed
 
-### Pattern 2: Unidirectional Data Flow
+### 1. Authentication Components
+| Component | Purpose | Type |
+|-----------|---------|------|
+| `SignInButton` | Trigger Clerk sign-in modal | Client |
+| `UserButton` | User menu (profile, sign out) | Client |
+| `ProtectedRoute` | Wrapper for auth-required pages | Server |
 
-**What:** Data flows down (parent → child via props), events flow up (child → parent via callbacks).
+### 2. Dashboard Components
+| Component | Purpose | Type |
+|-----------|---------|------|
+| `PostHistory` | List of saved posts by date | Server |
+| `PostCard` | Individual post preview | Client |
+| `BillingCard` | Subscription status | Server |
+| `UsageStats` | Daily usage counter | Server |
 
-**Why:** Predictable state changes, easier debugging, prevents spaghetti code.
+### 3. Payment Components
+| Component | Purpose | Type |
+|-----------|---------|------|
+| `PricingTable` | Plan comparison | Client |
+| `CheckoutButton` | Start Stripe checkout | Client |
+| `PortalLink` | Manage subscription | Client |
 
-**How:**
-```javascript
-// App.jsx - Single source of truth
-function App() {
-  const [industry, setIndustry] = useState(null);
-  const [settings, setSettings] = useState({});
-  const { postText, generatePost } = useGeneratePost();
+## Modified Components
+
+### 1. app/page.tsx (MAJOR CHANGES)
+**Current:** Single page app with all functionality
+**Modified:**
+- Add authentication check
+- Show "Sign in to save posts" for anonymous users
+- Save posts to database after generation
+- Link to dashboard for authenticated users
+
+```typescript
+// Pseudocode for changes
+export default async function HomePage() {
+  const { userId } = await auth() // Server component now
+  const hasAccess = userId ? await checkSubscription(userId) : false
 
   return (
     <>
-      {/* Data flows DOWN via props */}
-      <IndustrySelector
-        selectedIndustry={industry}
-        onSelect={setIndustry} // Event flows UP via callback
+      <Header userId={userId} />
+      {!userId && <CTABanner />}
+      <PostGenerator
+        userId={userId}
+        canGenerate={userId ? hasAccess : true} // Anonymous = limited access
       />
-
-      <PostSettings
-        currentSettings={settings}
-        onChange={setSettings}
-      />
-
-      <button onClick={() => generatePost({ industry, ...settings })}>
-        Generate Post
-      </button>
-
-      <PostOutput postText={postText} />
+      {userId && <QuickStats userId={userId} />}
     </>
-  );
+  )
 }
+```
 
-// IndustrySelector.jsx - Stateless presentational component
-function IndustrySelector({ selectedIndustry, onSelect }) {
+### 2. app/api/generate/route.ts (MODIFY)
+**Changes:**
+- Add auth check via Clerk's `auth()`
+- Query subscription status from database
+- Check usage limits for free tier
+- Save generated post to `posts` table
+- Increment `usage_limits` counter
+- Return usage remaining in headers
+
+### 3. app/api/generate-image/route.ts (MODIFY)
+**Changes:**
+- Add auth check
+- Link generated image to post record (if exists)
+- Track image generation in usage limits
+
+### 4. app/layout.tsx (MODIFY)
+**Changes:**
+- Wrap with `<ClerkProvider>`
+- Add environment variables for Clerk
+- Keep existing global CSS and Toaster
+
+```typescript
+import { ClerkProvider } from '@clerk/nextjs'
+
+export default function RootLayout({ children }) {
   return (
-    <div>
-      {industries.map(ind => (
-        <button
-          key={ind.id}
-          className={selectedIndustry === ind.id ? 'selected' : ''}
-          onClick={() => onSelect(ind.id)} // Emit event to parent
-        >
-          {ind.name}
-        </button>
-      ))}
-    </div>
-  );
+    <ClerkProvider>
+      <html lang="lt">
+        <body>
+          {children}
+          <Toaster />
+        </body>
+      </html>
+    </ClerkProvider>
+  )
 }
 ```
 
-**Sources:**
-- [Master React Unidirectional Data Flow](https://coderpad.io/blog/development/master-react-unidirectional-data-flow/)
-- [ReactJS Unidirectional Data Flow](https://www.geeksforgeeks.org/reactjs/reactjs-unidirectional-data-flow/)
+## Data Flow Diagrams
 
-### Pattern 3: Security-First API Design
-
-**What:** Never expose API keys to the client; all external API calls happen server-side.
-
-**Why:** Prevents unauthorized usage, API key theft, and cost abuse.
-
-**How:**
+### Authentication Flow
 ```
-❌ WRONG (Client calls OpenAI directly):
-React Component → OpenAI API (exposes API key in browser)
-
-✅ CORRECT (Proxy through serverless function):
-React Component → Vercel API Route → OpenAI API
-                  (API key in env vars)
+User visits site
+    ↓
+middleware.ts checks session
+    ↓
+Public route? → Render page
+    ↓
+Protected route? → auth().protect()
+    ↓
+No session? → Redirect /sign-in
+    ↓
+Has session? → Inject user object → Render page
 ```
 
-**Additional security:**
-- Rate limiting (prevent abuse): Use Vercel's built-in rate limiting or Upstash
-- Input validation: Sanitize user inputs before sending to OpenAI
-- Error sanitization: Don't leak internal errors to client
-
-**Sources:**
-- [Integrating AI APIs into React Apps | 2026 Guide](https://www.credosystemz.com/blog/integrating-ai-apis-into-react-app/)
-- [Vercel serverless functions OpenAI best practices](https://medium.com/@kolbysisk/case-study-solving-vercels-10-second-limit-with-qstash-2bceeb35d29b)
-
-### Pattern 4: Optimistic UI Updates
-
-**What:** Show immediate feedback before server response arrives.
-
-**Why:** Perceived performance boost; app feels instant.
-
-**How:**
-```javascript
-function ImageGenerator({ onGenerate }) {
-  const [optimisticImage, setOptimisticImage] = useState(null);
-
-  const handleGenerate = async (prompt) => {
-    // Show placeholder immediately
-    setOptimisticImage({ loading: true, placeholder: '/loading.gif' });
-
-    // Wait for real image
-    const image = await generateImage(prompt);
-
-    // Replace with real result
-    setOptimisticImage(null);
-    onGenerate(image);
-  };
-
-  return optimisticImage ? (
-    <img src={optimisticImage.placeholder} alt="Generating..." />
-  ) : null;
-}
+### Generation Flow (v2.0)
+```
+User submits prompt
+    ↓
+POST /api/generate
+    ↓
+auth() validates session → userId
+    ↓
+Query subscriptions table → planType
+    ↓
+IF planType === 'free':
+    Query usage_limits → count
+    IF count >= 3 → 429 error
+    ↓
+Generate text (existing logic)
+    ↓
+INSERT into posts table
+UPDATE usage_limits SET textGenerations = textGenerations + 1
+    ↓
+Stream response to client
 ```
 
-### Pattern 5: Feature-Based Folder Structure
-
-**What:** Organize by features/domains, not file types.
-
-**Why:** Easier to find related code; scales better than grouping all components together.
-
-**Recommended structure for your project:**
+### Subscription Flow
 ```
-/src
-  /features                    # Feature-based organization
-    /post-generation
-      IndustrySelector.jsx
-      PostSettings.jsx
-      PostOutput.jsx
-      useGeneratePost.js       # Co-located hook
-    /image-generation
-      ImageUploader.jsx
-      ImageGenerator.jsx
-      PreviewCard.jsx
-      useGenerateImage.js
-  /shared                      # Reusable across features
-    /components
-      Button.jsx
-      Card.jsx
-    /utils
-      api.js
-      prompts.js
-  App.jsx
-  main.jsx
-
-/api                           # Vercel serverless functions
-  generate-post.js
-  generate-image.js
+User clicks "Upgrade"
+    ↓
+POST /api/checkout
+    ↓
+stripe.checkout.sessions.create()
+    ↓
+Redirect to Stripe
+    ↓
+User pays
+    ↓
+Stripe webhook → POST /api/webhooks/stripe
+    ↓
+event.type === 'customer.subscription.created'
+    ↓
+INSERT into subscriptions table
+    (userId, stripeCustomerId, status, planType, etc.)
+    ↓
+Redirect user to /dashboard
+    ↓
+Dashboard queries subscriptions table → "Pro Plan"
 ```
 
-**Alternative (if keeping current structure):**
+### Post History Flow
 ```
-/src
-  /components                  # All UI components
-    IndustrySelector.jsx
-    ImageUploader.jsx
-    ImageGenerator.jsx
-    PostSettings.jsx
-    PostOutput.jsx
-    PreviewCard.jsx
-  /hooks                       # Custom hooks
-    useGeneratePost.js
-    useGenerateImage.js
-  /utils                       # Utilities
-    api.js
-    prompts.js
-  App.jsx
-  main.jsx
-```
-
-**Note:** Current structure is acceptable for a small app (~6 components). Consider feature-based structure if you add more features (e.g., post scheduling, analytics).
-
-**Sources:**
-- [React Folder Structure in 5 Steps [2025]](https://www.robinwieruch.de/react-folder-structure/)
-- [React Folder Structure with Vite & TypeScript](https://medium.com/@prajwalabraham.21/react-folder-structure-with-vite-typescript-beginner-to-advanced-9cd12d1d18a6)
-
-## Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Prop Drilling Through Multiple Levels
-
-**What:** Passing props through 3+ intermediate components that don't use them.
-
-**Why bad:** Makes components tightly coupled, harder to refactor, and harder to test.
-
-**Example:**
-```javascript
-// ❌ BAD: Settings passed through components that don't need them
-<App settings={settings}>
-  <Container settings={settings}>      {/* doesn't use settings */}
-    <Wrapper settings={settings}>      {/* doesn't use settings */}
-      <PostOutput settings={settings}> {/* finally uses it */}
+User visits /dashboard
+    ↓
+auth() validates session → userId
+    ↓
+Server Component queries:
+    SELECT * FROM posts
+    WHERE user_id = $userId
+    ORDER BY created_at DESC
+    LIMIT 50
+    ↓
+Render PostCard components
+    ↓
+User clicks post → View details
+    ↓
+User clicks "Regenerate" → POST /api/generate (same flow)
 ```
 
-**Instead:** Use React Context for deeply nested props (or keep state high enough that you don't need deep passing).
+## Environment Variables Needed
 
-**For this project:** You shouldn't hit this issue since your structure is flat (App → Components). If you do, consider Context API or a lightweight state manager like Zustand.
+```env
+# Existing (v1.0)
+OPENAI_API_KEY=sk_xxx
+UPSTASH_REDIS_REST_URL=https://xxx
+UPSTASH_REDIS_REST_TOKEN=xxx
 
-**Sources:**
-- [10 React Anti-patterns you should know](https://yosua-halim.medium.com/10-react-anti-patterns-you-should-know-300256bfb007)
-- [6 Common React Anti-Patterns](https://itnext.io/6-common-react-anti-patterns-that-are-hurting-your-code-quality-904b9c32e933)
+# New (v2.0)
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
+CLERK_SECRET_KEY=sk_test_xxx
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 
-### Anti-Pattern 2: Using Array Index as Key
+# Database
+POSTGRES_URL=postgres://xxx
+POSTGRES_PRISMA_URL=postgres://xxx  # For migrations
+POSTGRES_URL_NON_POOLING=postgres://xxx  # For migrations
 
-**What:** `<div key={index}>` in lists.
-
-**Why bad:** Breaks React's reconciliation algorithm; causes bugs when list order changes.
-
-**Instead:** Use stable, unique IDs.
-
-```javascript
-// ❌ BAD
-industries.map((industry, index) => (
-  <div key={index}>{industry.name}</div>
-))
-
-// ✅ GOOD
-industries.map(industry => (
-  <div key={industry.id}>{industry.name}</div>
-))
+# Stripe
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+NEXT_PUBLIC_STRIPE_PRICE_ID_PRO=price_xxx
+NEXT_PUBLIC_STRIPE_PRICE_ID_PREMIUM=price_xxx
 ```
 
-**Sources:**
-- [React Anti-patterns and Best Practices](https://www.perssondennis.com/articles/react-anti-patterns-and-best-practices-dos-and-donts)
+## Suggested Build Order
 
-### Anti-Pattern 3: Mutating State Directly
+### Phase 1: Database Foundation (Week 1)
+**Why first:** Everything depends on persistent storage
+1. Set up Vercel Postgres
+2. Install Drizzle ORM
+3. Define schema (users, posts, subscriptions, usage_limits)
+4. Create migrations
+5. Test database connection in Edge Runtime
 
-**What:** `state.value = newValue` instead of `setState(newValue)`.
+**Dependencies:** None
+**Blocks:** Phase 2, 3, 4
 
-**Why bad:** React won't detect the change; no re-render happens.
+### Phase 2: Authentication (Week 1-2)
+**Why second:** Required before user-specific features
+1. Install Clerk
+2. Create middleware.ts
+3. Set up sign-in/sign-up routes
+4. Modify layout.tsx with ClerkProvider
+5. Add UserButton to header
+6. Test auth flow
 
-**Instead:** Always use setState or state updater functions.
+**Dependencies:** Phase 1 (users table)
+**Blocks:** Phase 3, 4
 
-```javascript
-// ❌ BAD
-const [settings, setSettings] = useState({});
-settings.tone = 'professional'; // Direct mutation
+### Phase 3: Post Saving & History (Week 2)
+**Why third:** Core feature, builds on auth + DB
+1. Modify `/api/generate` to save posts
+2. Modify `/api/generate-image` to link images
+3. Create `/dashboard` page
+4. Build PostHistory component
+5. Add PostCard component
+6. Test CRUD operations
 
-// ✅ GOOD
-setSettings(prev => ({ ...prev, tone: 'professional' }));
-```
+**Dependencies:** Phase 1, 2
+**Blocks:** None
 
-**Sources:**
-- [React Anti Patterns](https://reactantipatterns.com/)
+### Phase 4: Usage Tracking & Limits (Week 2-3)
+**Why fourth:** Requires auth + DB, enables monetization
+1. Create usage tracking logic
+2. Modify `/api/generate` to check limits
+3. Add usage increment after success
+4. Build UsageStats component
+5. Test free tier limits (3/day)
 
-### Anti-Pattern 4: Over-Engineering for Day 1
+**Dependencies:** Phase 1, 2
+**Blocks:** Phase 5
 
-**What:** Adding complex state management (Redux), database, authentication when you don't need it yet.
+### Phase 5: Stripe Integration (Week 3-4)
+**Why last:** Most complex, depends on everything
+1. Set up Stripe account + products
+2. Create `/api/checkout` route
+3. Create `/api/webhooks/stripe` route (Node runtime!)
+4. Set up webhook endpoint in Stripe dashboard
+5. Test subscription creation flow
+6. Build BillingCard component
+7. Test upgrade/downgrade/cancel flows
+8. Handle edge cases (payment failures, etc.)
 
-**Why bad:** Slows development, increases maintenance burden, harder to change direction.
+**Dependencies:** Phase 1, 2, 4
+**Blocks:** None
 
-**Your decision to skip database and use client-side state is CORRECT for MVP.** Add complexity only when you have evidence you need it (e.g., users want to save drafts → then add database).
+### Phase 6: UI Polish (Week 4)
+**Why final:** Makes everything user-friendly
+1. Fix industry selector UX (expand on click)
+2. Add CTABanner for anonymous users
+3. Add QuickStats to homepage
+4. Add loading states for async operations
+5. Improve error messages
+6. Mobile responsiveness check
 
-**Sources:**
-- [Generative AI Pitfalls](https://medium.com/@sahin.samia/generative-ai-pitfalls-the-common-mistakes-that-can-derail-your-ai-project-d741239d0ffa)
+**Dependencies:** Phase 1-5
+**Blocks:** None
 
-### Anti-Pattern 5: Blocking UI During AI Generation
+## Migration Path from v1.0 to v2.0
 
-**What:** Disabling entire app or showing spinner while waiting for OpenAI response.
+### Backward Compatibility Strategy
+**Goal:** v2.0 must support existing anonymous users during transition
 
-**Why bad:** Poor UX; users can't adjust settings or cancel.
+#### Option A: Gradual Migration (Recommended)
+1. **Week 1-2:** Deploy auth + DB without breaking existing flow
+   - Anonymous users continue using site (no changes)
+   - Authenticated users can save posts
+   - Both paths supported
 
-**Instead:** Use streaming + optimistic updates + allow cancellation.
+2. **Week 3:** Add "Sign in to save" prompts
+   - Don't block anonymous usage
+   - Encourage registration with benefits
 
-```javascript
-// ✅ GOOD: Stream results, allow editing while loading
-const { postText, isLoading, cancelGeneration } = useGeneratePost();
+3. **Week 4+:** Consider limiting anonymous usage
+   - Maybe 1-2 generations/day for anonymous
+   - Full 3/day for free tier with account
 
-return (
-  <>
-    <PostSettings disabled={false} /> {/* Still editable */}
-    {isLoading && <button onClick={cancelGeneration}>Cancel</button>}
-    <PostOutput postText={postText} streaming={isLoading} />
-  </>
-);
-```
+#### Option B: Hard Cutoff (Not Recommended)
+- Require authentication immediately
+- Risk losing users who just want to try tool
+- Conflicts with "60-second workflow" value prop
 
-**Sources:**
-- [AI UI Patterns](https://www.patterns.dev/react/ai-ui-patterns/)
+**Recommended:** Option A with persistent "Sign up to save posts" banner
 
-### Anti-Pattern 6: Trusting AI Output Without Validation
+## Architecture Anti-Patterns to Avoid
 
-**What:** Displaying generated posts directly without client-side validation or editing capability.
+### 1. Auth in Layouts
+**Why bad:** Layouts don't re-render on navigation
+**Do instead:** Check auth close to data source or in page components
 
-**Why bad:** AI can hallucinate, produce inappropriate content, or miss brand voice.
+### 2. Storing Sensitive Tokens Client-Side
+**Why bad:** XSS vulnerability
+**Do instead:** Use HTTP-only cookies (Clerk handles this)
 
-**Instead:** Always provide edit capability and consider basic content validation.
+### 3. Hitting Stripe API on Every Request
+**Why bad:** Adds latency, rate limits
+**Do instead:** Store subscription status locally, sync via webhooks
 
-```javascript
-// ✅ GOOD: Allow editing before publishing
-function PostOutput({ postText, onEdit }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedText, setEditedText] = useState(postText);
+### 4. Using Edge Runtime for Webhooks
+**Why bad:** Cannot parse raw request body for signature verification
+**Do instead:** Use `export const runtime = 'nodejs'` for webhook routes
 
-  return isEditing ? (
-    <textarea
-      value={editedText}
-      onChange={(e) => setEditedText(e.target.value)}
-    />
-  ) : (
-    <div>
-      <p>{postText}</p>
-      <button onClick={() => setIsEditing(true)}>Edit</button>
-    </div>
-  );
-}
-```
+### 5. Relying Only on Middleware for Auth
+**Why bad:** CVE-2025-29927, partial rendering issues
+**Do instead:** Verify auth at data access layer (in API routes, Server Components)
 
-**Sources:**
-- [Common Pitfalls in AI-Generated Content](https://www.highervisibility.com/seo/learn/common-pitfalls-ai-generated-content/)
-- [Make the Most of AI Content Creation: 10 Common Mistakes to Avoid](https://narrato.io/blog/10-ai-content-creation-mistakes-to-avoid/)
+### 6. Not Indexing Database Queries
+**Why bad:** Slow queries as data grows
+**Do instead:** Index foreign keys (userId, created_at, date)
 
-## Build Order (Dependency-Based Roadmap Suggestions)
+### 7. Synchronous Database Writes in Streaming
+**Why bad:** Delays streaming response
+**Do instead:** Save to DB after streaming completes (or async)
 
-### Phase 1: Foundation (Vertical Slice)
-**Goal:** Get ONE working flow end-to-end.
+## Performance Considerations
 
-**Build order:**
-1. Vite + React project setup
-2. Basic App.jsx with hardcoded state
-3. One API route: `/api/generate-post.js` (no streaming yet, just fetch)
-4. One hook: `useGeneratePost` (basic fetch)
-5. One component: `PostOutput` (display result)
+### Edge Runtime Limitations
+- **Current:** All API routes use Edge Runtime (25s timeout)
+- **New:** Webhook route MUST use Node.js runtime
+- **Trade-off:** Node.js has 10s timeout, but webhooks are fast (<1s typically)
 
-**Why this order:** Proves integration with OpenAI works before building UI.
+### Database Connection Pooling
+- Vercel Postgres uses connection pooling
+- Drizzle's `@vercel/postgres` driver is edge-compatible
+- No persistent connections in Edge (stateless)
 
-### Phase 2: Input Layer
-**Goal:** Add user controls.
+### Caching Opportunities
+1. **User subscription status:** Cache for 5 minutes (revalidate on webhook)
+2. **Post history:** Cache per user, invalidate on new post
+3. **Usage limits:** Short TTL (1 minute) to prevent over-generation
 
-**Build order:**
-1. `IndustrySelector` component
-2. `PostSettings` component
-3. Wire to App.jsx state
-4. Update API route to use settings
+## Security Checklist
 
-**Why this order:** Build from data source (user input) to consumer (API).
-
-### Phase 3: Streaming UX
-**Goal:** Add progressive display.
-
-**Build order:**
-1. Update `/api/generate-post.js` to stream
-2. Update `useGeneratePost` to handle streaming
-3. Update `PostOutput` to show streaming state
-
-**Why this order:** Streaming requires coordinated changes across stack.
-
-### Phase 4: Image Generation
-**Goal:** Add DALL-E support.
-
-**Build order:**
-1. `/api/generate-image.js` endpoint
-2. `useGenerateImage` hook
-3. `ImageGenerator` component
-4. `ImageUploader` component (alternative input)
-5. `PreviewCard` component (shows image + text together)
-
-**Why this order:** Image generation is independent; can be built in parallel with text streaming if you have the bandwidth.
-
-### Phase 5: Polish
-**Goal:** Production-ready details.
-
-**Build order:**
-1. Error handling (retry logic, user-friendly messages)
-2. Loading states and skeletons
-3. Rate limiting in API routes
-4. Input validation
-5. Edit capability in PostOutput
-6. Copy-to-clipboard functionality
-
-**Why this order:** Features that make the app feel polished but don't change core functionality.
-
-## Scalability Considerations
-
-| Concern | At 10 users/day | At 100 users/day | At 1000 users/day |
-|---------|-----------------|------------------|-------------------|
-| **API costs** | Negligible (~$1/month) | ~$10-20/month | ~$100-200/month; consider caching common prompts |
-| **Vercel serverless** | Free tier sufficient | Free tier sufficient | May need Pro tier ($20/month) for increased function invocations |
-| **State management** | Client-side state fine | Client-side state fine | Consider adding persistence (LocalStorage or DB) for draft saving |
-| **Rate limiting** | Not needed | Add per-IP rate limiting (10 req/min) | Add per-user rate limiting + CAPTCHA |
-| **Image storage** | Base64 in state fine | Base64 in state fine | Store in Cloudinary/S3, return URLs instead |
-| **Monitoring** | Console logs | Vercel Analytics | Add Sentry for error tracking, Vercel Analytics for usage metrics |
-
-**Note:** Your architecture is designed to scale horizontally (serverless auto-scales). Main concern is cost management, not technical limits.
-
-## Technology-Specific Notes
-
-### Vite Considerations
-
-- **HMR (Hot Module Replacement):** Works out-of-box; state resets on edit. Use `import.meta.hot.accept()` for preserving state during dev.
-- **Build optimization:** Vite automatically code-splits; no config needed for basic app.
-- **Environment variables:** Use `VITE_` prefix for client-side vars, but **DO NOT put API keys there** (they're exposed in bundle).
-
-### Vercel Serverless Limitations
-
-- **Timeout:** 10s (Hobby), 60s (Pro). OpenAI usually responds in 5-15s, so this is acceptable.
-- **Cold starts:** First request after idle may be slow (~500ms). Not a concern for this use case.
-- **Payload size:** Max 4.5MB request body. Images should be URLs or compressed before upload.
-
-### OpenAI via kie.ai
-
-- **Proxy benefits:** Handles rate limiting, provides Lithuanian IP routing if needed.
-- **API compatibility:** Uses standard OpenAI SDK format; easy to switch to direct OpenAI later.
-- **Rate limits:** Check kie.ai docs for specific limits (varies by plan).
-
-## Confidence Assessment
-
-| Area | Confidence | Source Quality |
-|------|------------|----------------|
-| React architecture patterns | **HIGH** | Multiple official sources (React.dev, Vercel, Patterns.dev) |
-| Serverless AI integration | **HIGH** | AWS official blog, Vercel official docs |
-| Streaming implementation | **HIGH** | Vercel AI SDK docs, multiple tutorials |
-| Vite + React structure | **HIGH** | Official Vite docs, recent 2026 guides |
-| Anti-patterns | **HIGH** | Well-documented in community |
-
-## Summary for Roadmap Creation
-
-**Component dependency graph:**
-```
-App.jsx (root)
-  ↓
-  ├─ IndustrySelector (independent)
-  ├─ ImageUploader (independent)
-  ├─ ImageGenerator (depends on useGenerateImage)
-  ├─ PostSettings (independent)
-  ├─ PostOutput (depends on useGeneratePost)
-  └─ PreviewCard (depends on PostOutput + ImageGenerator)
-
-Hooks:
-  useGeneratePost (depends on /api/generate-post.js)
-  useGenerateImage (depends on /api/generate-image.js)
-```
-
-**Suggested build order for phases:**
-1. **Foundation:** API routes + basic hooks + minimal UI
-2. **Input layer:** Form components → state → API
-3. **Streaming:** Upgrade API + hooks + output component
-4. **Images:** Separate feature, can be parallel
-5. **Polish:** Error handling, UX refinements
-
-**Architecture decisions validated:**
-- ✅ React + Vite: Modern, fast, AI-friendly stack
-- ✅ Vercel serverless: Correct choice for AI workloads (auto-scaling, pay-per-use)
-- ✅ Client-side state: Appropriate for MVP (no database needed yet)
-- ✅ Component structure: Clean separation, follows best practices
-
-**Key risks to address in phases:**
-- Phase 1: Ensure streaming works (most complex technical piece)
-- Phase 4: DALL-E rate limits and cost management
-- Phase 5: Error handling (OpenAI can fail; need graceful degradation)
-
----
+- [ ] Clerk configured with proper redirect URLs
+- [ ] Stripe webhook secret stored securely
+- [ ] Database credentials in environment variables only
+- [ ] Auth verified at data access layer, not just middleware
+- [ ] SQL injection prevented via parameterized queries (Drizzle handles this)
+- [ ] Rate limiting still in place for anonymous users
+- [ ] CORS configured for Stripe webhooks
+- [ ] CSP headers for XSS protection
+- [ ] Next.js 15.2.3+ to patch CVE-2025-29927
 
 ## Sources
 
-### Architecture Patterns
-- [Google's Eight Essential Multi-Agent Design Patterns - InfoQ](https://www.infoq.com/news/2026/01/multi-agent-design-patterns/)
-- [Top 5 Generative AI Architecture Patterns](https://www.clickittech.com/ai/generative-ai-architecture-patterns/)
-- [Serverless generative AI architectural patterns – Part 1 | AWS](https://aws.amazon.com/blogs/compute/serverless-generative-ai-architectural-patterns/)
-- [Serverless generative AI architectural patterns – Part 2 | AWS](https://aws.amazon.com/blogs/compute/part-2-serverless-generative-ai-architectural-patterns/)
+### Authentication & Security
+- [Complete Authentication Guide for Next.js App Router in 2025](https://clerk.com/articles/complete-authentication-guide-for-nextjs-app-router)
+- [Stop Crying Over Auth: A Senior Dev's Guide to Next.js 15 & Auth.js v5](https://javascript.plainenglish.io/stop-crying-over-auth-a-senior-devs-guide-to-next-js-15-auth-js-v5-42a57bc5b4ce)
+- [Auth.js Edge Compatibility](https://authjs.dev/guides/edge-compatibility)
+- [Clerk Middleware Documentation](https://clerk.com/docs/reference/nextjs/clerk-middleware)
+- [Next.js Authentication Guide](https://nextjs.org/docs/app/guides/authentication)
+- [Auth.js Session Management: Protecting Routes](https://authjs.dev/getting-started/session-management/protecting)
 
-### React Best Practices (2026)
-- [The React + AI Stack for 2026](https://www.builder.io/blog/react-ai-stack-2026)
-- [Introducing: React Best Practices - Vercel](https://vercel.com/blog/introducing-react-best-practices)
-- [React Architecture Patterns and Best Practices for 2026](https://www.bacancytechnology.com/blog/react-architecture-patterns-and-best-practices)
-- [Integrating AI APIs into React Apps | 2026 Guide](https://www.credosystemz.com/blog/integrating-ai-apis-into-react-app/)
+### Stripe Integration
+- [Stripe Checkout and Webhook in Next.js 15 (2025)](https://medium.com/@gragson.john/stripe-checkout-and-webhook-in-a-next-js-15-2025-925d7529855e)
+- [Stripe + Next.js 15: The Complete 2025 Guide](https://www.pedroalonso.net/blog/stripe-nextjs-complete-guide-2025/)
+- [How to Handle Stripe Webhooks in Next.js (The App Router Way)](https://dev.to/thekarlesi/how-to-handle-stripe-and-paystack-webhooks-in-nextjs-the-app-router-way-5bgi)
+- [Build a Subscriptions Integration - Stripe Documentation](https://docs.stripe.com/billing/subscriptions/build-subscriptions)
+- [Designing Database for Subscription - BigBinary](https://www.bigbinary.com/books/handling-stripe-subscriptions/designing-database-for-subscription)
 
-### Streaming & AI Integration
-- [AI UI Patterns](https://www.patterns.dev/react/ai-ui-patterns/)
-- [Build a GPT-3 app with Next.js and Vercel Edge Functions](https://vercel.com/blog/gpt-3-app-next-js-vercel-edge-functions)
-- [Real-time AI in Next.js: How to stream responses with the Vercel AI SDK](https://blog.logrocket.com/nextjs-vercel-ai-sdk-streaming/)
+### Database & ORM
+- [Drizzle ORM - Drizzle with Vercel Edge Functions](https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions)
+- [Drizzle ORM - Vercel Postgres](https://orm.drizzle.team/docs/connect-vercel-postgres)
+- [Vercel Postgres Documentation](https://vercel.com/docs/storage/vercel-postgres)
+- [Deploy to Vercel Edge Functions & Middleware - Prisma](https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel)
+- [Database Schema Design for Social Media Applications](https://www.back4app.com/tutorials/how-to-design-a-database-schema-for-a-social-media-application)
+- [A Database Design for User Profiles](https://vertabelo.com/blog/user-profile-database-model/)
 
-### Unidirectional Data Flow
-- [Master React Unidirectional Data Flow - CoderPad](https://coderpad.io/blog/development/master-react-unidirectional-data-flow/)
-- [ReactJS Unidirectional Data Flow - GeeksforGeeks](https://www.geeksforgeeks.org/reactjs/reactjs-unidirectional-data-flow/)
-- [Thinking in React – React](https://react.dev/learn/thinking-in-react)
+### Conditional Rendering & Patterns
+- [The Art of Conditional Rendering: React and Next.js](https://snyk.io/blog/conditional-rendering-react-next-js/)
+- [Authentication and Conditional Routing in Next.js](https://hassanzhd.medium.com/authentication-and-conditional-routing-in-next-js-dc61865aa3c4)
+- [Next.js Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
 
-### Component Patterns
-- [Essential React Design Patterns: Guide for 2026](https://trio.dev/essential-react-design-patterns/)
-- [Understanding the Composition Pattern in React](https://dev.to/wallacefreitas/understanding-the-composition-pattern-in-react-3dfp)
-- [React Component Design Patterns - Part 1](https://dev.to/fpaghar/react-component-design-patterns-part-1-5f0g)
-
-### Project Structure
-- [React Folder Structure in 5 Steps [2025]](https://www.robinwieruch.de/react-folder-structure/)
-- [React Folder Structure with Vite & TypeScript](https://medium.com/@prajwalabraham.21/react-folder-structure-with-vite-typescript-beginner-to-advanced-9cd12d1d18a6)
-- [Understanding Vite Flow and Structure in a React Project](https://medium.com/@vshall/understanding-vite-flow-and-structure-in-a-react-project-8c8672d62a77)
-
-### Anti-Patterns
-- [10 React Anti-patterns you should know](https://yosua-halim.medium.com/10-react-anti-patterns-you-should-know-300256bfb007)
-- [6 Common React Anti-Patterns](https://itnext.io/6-common-react-anti-patterns-that-are-hurting-your-code-quality-904b9c32e933)
-- [React Anti-patterns and Best Practices](https://www.perssondennis.com/articles/react-anti-patterns-and-best-practices-dos-and-donts)
-
-### AI Content Generation Pitfalls
-- [Common Pitfalls in AI-Generated Content](https://www.highervisibility.com/seo/learn/common-pitfalls-ai-generated-content/)
-- [Generative AI Pitfalls: Common Mistakes](https://medium.com/@sahin.samia/generative-ai-pitfalls-the-common-mistakes-that-can-derail-your-ai-project-d741239d0ffa)
-- [Make the Most of AI Content Creation: 10 Common Mistakes to Avoid](https://narrato.io/blog/10-ai-content-creation-mistakes-to-avoid/)
-
-### DALL-E Integration
-- [How to Generate Images using React and the Dall-E 2 API](https://www.freecodecamp.org/news/generate-images-using-react-and-dall-e-api-react-and-openai-api-tutorial/)
-- [Build a React Application for AI-Powered Image Generation Using OpenAI DALL-E API](https://kinsta.com/blog/ai-image-generator/)
-- [Implementing an event-driven serverless story generation with ChatGPT and DALL-E](https://aws.amazon.com/blogs/compute/implementing-an-event-driven-serverless-story-generation-application-with-chatgpt-and-dall-e/)
-
-### Vercel Serverless Best Practices
-- [Case Study: Solving Vercel's 10-Second Limit with QStash](https://medium.com/@kolbysisk/case-study-solving-vercels-10-second-limit-with-qstash-2bceeb35d29b)
-- [Why Vercel overhauled its serverless infrastructure for the AI era](https://www.runtime.news/why-vercel-overhauled-its-serverless-infrastructure-for-the-ai-era/)
-- [How AI Gateway runs on Fluid compute](https://vercel.com/blog/how-ai-gateway-runs-on-fluid-compute)
-
-### State Management
-- [AI SDK RSC: Managing Generative UI State](https://ai-sdk.dev/docs/ai-sdk-rsc/generative-ui-state)
-- [Building real-time state management with React and Fluent-State](https://blog.logrocket.com/building-real-time-state-management-react-fluent-state/)
+### Edge Runtime
+- [Vercel Edge Runtime Documentation](https://vercel.com/docs/functions/runtimes/edge)
+- [Next.js API Reference: Edge Runtime](https://nextjs.org/docs/app/api-reference/edge)
+- [Next.js and the Edge Runtime: A Guide for Full-Stack Developers](https://dev.to/waelhabbal/nextjs-and-the-edge-runtime-a-guide-for-full-stack-developers-17g3)

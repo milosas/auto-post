@@ -1,695 +1,1436 @@
-# Domain Pitfalls: AI Social Media Post Generator
+# Pitfalls Research: v2.0 Auth + DB + Payments
 
-**Domain:** AI content generation tool for Lithuanian small business social media
-**Researched:** 2026-01-25
-**Confidence:** MEDIUM (verified with official sources + web research)
+**Domain:** Adding authentication, database, and Stripe payments to existing Next.js app
+**Context:** Migrating Social Post Generator from anonymous/stateless to authenticated/persistent
+**Researched:** 2026-01-29
+**Overall confidence:** MEDIUM-HIGH (verified with official docs and recent sources)
+
+---
 
 ## Executive Summary
 
-AI social media post generators face unique pitfalls that cause project failures, user abandonment, and runaway costs. For a Lithuanian-only, no-database serverless tool targeting non-technical users, the most critical risks are:
+When adding auth, database, and payments to an existing anonymous Next.js app, teams face three critical pitfall categories:
 
-1. **Cost runaway** from unmonitored API usage (can bankrupt project overnight)
-2. **Lithuanian language quality issues** (limited training data leads to poor outputs)
-3. **Serverless timeout failures** (Vercel's 10s limit vs 60s target creates mismatch)
-4. **DALL-E content policy false positives** (blocks harmless Lithuanian prompts)
-5. **No-database stateless architecture** (can't track usage, fix issues, or improve)
+1. **Integration Pitfalls** - Breaking existing anonymous flows when adding authentication
+2. **Infrastructure Pitfalls** - Database connection pooling failures in serverless environments
+3. **Payment Security Pitfalls** - Race conditions and webhook verification errors
 
-These aren't minor issues—they're project killers. Each requires explicit mitigation in roadmap planning.
+The highest-severity issues are session migration (loses user data), connection pooling mismatches (breaks app in production), and webhook race conditions (double charges/false cancellations).
 
 ---
 
-## Critical Pitfalls
+## CRITICAL PITFALLS (Project-Killer)
 
-Mistakes that cause rewrites, project abandonment, or major financial damage.
+### P1: Breaking Existing Anonymous Flow When Adding Auth
 
-### Pitfall 1: Uncontrolled API Cost Runaway
+**Severity:** Project-killer
+**Category:** Integration
+**Phase:** Authentication implementation (Phase 1-2)
 
 **What goes wrong:**
-Without spending limits, a single bug or malicious user can generate thousands of dollars in OpenAI API charges overnight. Teams discover catastrophic bills days later when credit card statements arrive.
+Users who built habits around the anonymous flow lose access to their workflow. The app forces authentication before allowing tool usage, destroying the core value proposition of "quick, no-signup access."
 
 **Why it happens:**
-- No database means no usage tracking per user/session
-- Serverless functions execute independently with no global state
-- OpenAI charges per token, making costs variable and unpredictable
-- DALL-E image generation costs $0.04-0.12 per image (adds up fast)
-- Retry logic without exponential backoff can amplify costs 10x
-- Exposed API keys in frontend code (common mistake) allow abuse
-
-**Real-world impact:**
-- 40% of time saved from AI is spent fixing errors, including runaway costs
-- One compromised API key can generate $10,000+ bills in hours
-- Research shows inadequate monitoring catches runaway costs only after damage is done
+- Developers add middleware that blocks all routes requiring authentication
+- No "try before signup" path preserved
+- Session data from anonymous usage gets lost on authentication
 
 **Consequences:**
-- Project becomes financially unsustainable
-- Credit card chargebacks/disputes
-- Need to rebuild with cost controls (expensive refactor)
-- Loss of trust if users are charged for service issues
-
-**Prevention strategies:**
-
-1. **Hard spending limits (API level):**
-   - Set OpenAI monthly budget with automatic cutoff
-   - Configure email alerts at 50%, 75%, 90% thresholds
-   - Use prepaid billing to guarantee spending cap
-   - Set `max_tokens` parameter on every API call (prevents runaway generation)
-
-2. **Rate limiting (application level):**
-   - Implement Vercel Edge Config or KV for rate limiting by IP/session
-   - Limit: 5 post generations per hour per IP (adjust based on UX needs)
-   - Block requests after limit with clear user messaging
-   - Use exponential backoff (3s, 9s, 27s delays) on retries
-
-3. **Cost monitoring:**
-   - Daily usage queries via OpenAI API usage endpoint
-   - Log all API calls with token counts to Vercel Analytics
-   - Alert when daily spending exceeds threshold (e.g., $10/day)
-   - Weekly cost reviews during development
-
-4. **Secure API key management:**
-   - Never expose OpenAI API key in frontend code
-   - Use environment variables in Vercel serverless functions only
-   - Proxy all API calls through backend endpoints
-   - Consider kie.ai's credit system for additional cost control layer
-
-**Detection warning signs:**
-- Vercel function invocation count spikes unexpectedly
-- OpenAI dashboard shows unusual usage patterns
-- Users report slow responses (may indicate retry loops)
-- Credit card pre-authorization alerts
-
-**Phase mapping:**
-- **Phase 1 (Foundation):** Implement hard spending limits and rate limiting BEFORE any production deployment
-- **Phase 2 (MVP):** Add cost monitoring dashboard and alerts
-- **Phase 3+:** Optimize token usage based on production data
-
-**Sources:**
-- [OpenAI API Rate Limiting Best Practices](https://help.openai.com/en/articles/6891753-what-are-the-best-practices-for-managing-my-rate-limits-in-the-api)
-- [OpenAI Cost Monitoring](https://www.toriihq.com/articles/how-to-monitor-spending-openai)
-- [Preventing Runaway Bills](https://www.finout.io/blog/openai-pricing-in-2026)
-
----
-
-### Pitfall 2: Lithuanian Language Quality Issues
-
-**What goes wrong:**
-AI models trained primarily on English produce poor-quality Lithuanian content: unnatural phrasing, grammatical errors (7 noun cases!), inappropriate formality levels, and cultural mismatches. Small business users expect professional posts; generic AI-translated content damages their brand.
-
-**Why it happens:**
-- Only 12 languages used on 98% of webpages; English is 72%
-- Lithuanian has limited digital presence in training data
-- Complex grammar: 7 noun cases, 2 genders, pitch accent affects meaning
-- Cultural context (Lithuanian service provider norms) not in training data
-- OpenAI models optimize for English; Lithuanian is lower priority
-- Prompting in Lithuanian may trigger DALL-E content policy false positives
-
-**Real-world impact:**
-- Lithuania allocated €12M for AI language solutions due to these challenges
-- Small market (2.8M speakers) means limited commercial AI focus
-- Target users (non-technical service providers) can't debug bad translations
-- Poor Lithuanian quality = immediate user abandonment
-
-**Consequences:**
-- Users generate unprofessional posts, damage their brand, abandon tool
-- Can't differentiate from free tools (Google Translate + Canva)
-- No word-of-mouth growth if quality is poor
-- Must add human-in-the-loop editing (defeats "60-second" value prop)
-
-**Prevention strategies:**
-
-1. **Prompt engineering for Lithuanian:**
-   - Include explicit role: "You are an expert Lithuanian copywriter for small service businesses"
-   - Specify formality: "Use professional but warm tone (jūs, not tu)"
-   - Reference Lithuanian marketing norms in system prompt
-   - Provide few-shot examples of good Lithuanian social media posts
-   - Use structured prompts with clear sections (headline, body, CTA)
-
-2. **Quality validation:**
-   - Create 10-15 test scenarios covering different service types
-   - Manual Lithuanian quality review during development
-   - Test with actual Lithuanian small business owners (UX testing)
-   - Flag low-confidence generations for user review
-
-3. **Hybrid approach:**
-   - Generate content in English first, then translate (may produce better results)
-   - Provide template library with verified Lithuanian phrasing
-   - Allow users to save/reuse successful posts (builds quality corpus)
-   - Consider Lithuanian language model fine-tuning if budget allows (future phase)
-
-4. **DALL-E prompt handling:**
-   - Convert Lithuanian image requests to English before DALL-E API
-   - Avoid location-specific terms that may trigger false positives
-   - Use descriptive visual terms, not cultural references
-   - Test prompts for content policy violations in development
-
-**Detection warning signs:**
-- User feedback about "weird" or "unnatural" phrasing
-- High edit rates (users fixing generated content)
-- Low reuse rates (users don't publish generated posts)
-- Competitors' Lithuanian quality is noticeably better
-
-**Phase mapping:**
-- **Phase 1 (Foundation):** Test Lithuanian quality extensively, build prompt templates
-- **Phase 2 (MVP):** Implement quality validation, gather user feedback
-- **Phase 3+:** Consider fine-tuning or hybrid approaches based on feedback
-
-**Sources:**
-- [Lithuanian AI Language Challenges](https://eimin.lrv.lt/en/structure-and-contacts/news-1/eimin-12-million-for-ai-solutions-for-the-lithuanian-language/)
-- [Lithuanian Language Technology Requirements](https://tilde.ai/case-study/technology-is-crucial-to-preserve-the-lithuanian-language/)
-- [Master Lithuanian with AI Technology](https://talkpal.ai/master-lithuanian-fast-learn-lithuanian-with-ai-technology/)
-
----
-
-### Pitfall 3: Vercel Serverless Timeout vs. 60-Second Target
-
-**What goes wrong:**
-Vercel's Hobby plan has 10-second timeout limit. Generating a post with OpenAI + DALL-E image easily takes 15-30 seconds (text generation 3-5s, image generation 10-20s), causing 504 Gateway Timeout errors. Users see loading spinner, then error. Project fails to deliver core value proposition.
-
-**Why it happens:**
-- OpenAI text generation: 2-8 seconds (variable based on length, load)
-- DALL-E 3 image generation: 10-30 seconds (often 15-20s average)
-- Sequential execution (text → image) adds delays
-- Cold starts add 1-3 seconds on first serverless invocation
-- No streaming means user waits for full completion
-- "60-second post generation" target requires 6x Vercel's free limit
-
-**Real-world impact:**
-- Vercel free tier: 10-second timeout (guaranteed failure for image+text)
-- Vercel Pro tier: 60-second timeout (costs $20/month + usage)
-- Edge Functions: 25-second timeout (better, but still tight)
-- Research shows users abandon AI tools when they can't tell if it's working or broken
-
-**Consequences:**
-- 90%+ request failure rate on free tier
-- Forced upgrade to Pro tier ($240/year) before product validation
-- User perception: "broken" tool, immediate abandonment
-- Can't hit 60-second target without major architecture changes
-
-**Prevention strategies:**
-
-1. **Streaming implementation (critical):**
-   - Stream text generation tokens as they arrive (reduces perceived latency)
-   - Show progress indicators: "Generating text..." → "Creating image..." → "Almost done..."
-   - Use Vercel AI SDK for streaming support
-   - Users see immediate feedback, perceive faster performance
-
-2. **Architecture adjustments:**
-   - Split into two serverless functions: /api/generate-text and /api/generate-image
-   - Return text immediately, fetch image asynchronously
-   - Use Vercel KV or client-side state to track image generation
-   - Consider "text-first, image-second" UX pattern
-
-3. **Timeout handling:**
-   - Implement client-side retry logic with exponential backoff
-   - Set realistic timeout expectations in UI: "This may take 30-60 seconds"
-   - Provide "Skip image" option if generation is too slow
-   - Use Vercel Edge Functions (25s timeout) instead of Serverless Functions (10s)
-
-4. **Performance optimization:**
-   - Enable Vercel Fluid Compute (reduces cold starts)
-   - Use smaller DALL-E models if quality allows (gpt-image-1-mini)
-   - Cache common image types (reduce DALL-E calls)
-   - Parallel execution where possible (text + image simultaneously if applicable)
-
-5. **Alternative: Queue-based approach:**
-   - Immediate response with job ID
-   - Background processing via QStash or similar
-   - Poll for completion or WebSocket updates
-   - More complex but handles unlimited generation time
-
-**Detection warning signs:**
-- 504 Gateway Timeout errors in Vercel logs
-- High function timeout rate in Vercel Analytics
-- User complaints about "stuck" loading screens
-- Comparison: development works (no timeouts), production fails
-
-**Phase mapping:**
-- **Phase 1 (Foundation):** Test actual generation times, implement streaming BEFORE launch
-- **Phase 2 (MVP):** Optimize performance, consider split-function architecture
-- **Phase 3+:** Evaluate queue-based approach if timeout issues persist
-
-**Sources:**
-- [Vercel Serverless Function Timeouts](https://vercel.com/kb/guide/what-can-i-do-about-vercel-serverless-functions-timing-out)
-- [Solving Vercel's 10-Second Limit](https://medium.com/@kolbysisk/case-study-solving-vercels-10-second-limit-with-qstash-2bceeb35d29b)
-- [OpenAI with Vercel: Gateway Timeout Solutions](https://dev.to/buildwebcrumbs/open-ai-with-vercel-a-way-around-gateway-timeouts-1ec9)
-
----
-
-### Pitfall 4: DALL-E Content Policy False Positives
-
-**What goes wrong:**
-DALL-E's content moderation filter blocks harmless Lithuanian prompts, returning "content_policy_violation" errors. Users trying to generate legitimate business images (restaurant food, hair salon styles, fitness training) get rejected. Filter over-triggers on non-English text, Lithuanian words, and even geographic references.
-
-**Why it happens:**
-- DALL-E filter optimized for English, makes more mistakes with Lithuanian
-- Filter errs on side of caution (many false positives to prevent few violations)
-- Lithuanian words may phonetically resemble flagged English terms
-- Detailed descriptions (common in good prompts) trigger over-filtering
-- Location references ("Vilnius sunset", "Kaunas street") sometimes blocked
-- System can't explain why harmless prompts are rejected
-
-**Real-world impact:**
-- Simple prompts like "sunset in Kyiv" rejected as policy violations
-- Users report "pencil sketch of fox" flagged incorrectly
-- Clothing descriptions, beach/pool references often blocked
-- Accounts can be terminated for repeated false positives (recovery takes months)
-- Research shows content policy blocks especially problematic for non-English prompts
-
-**Consequences:**
-- User frustration: "Why can't I generate a photo of my salon?"
-- Unpredictable failures break trust in tool
-- Can't debug (OpenAI doesn't explain violations)
-- May need to ban certain Lithuanian words/phrases to avoid blocks
-- Competitive disadvantage vs. tools using other image generators
-
-**Prevention strategies:**
-
-1. **Prompt sanitization:**
-   - Translate Lithuanian prompts to English before DALL-E API
-   - Strip potentially triggering words (clothing details, body parts, location names)
-   - Use generic visual descriptions instead of specific cultural references
-   - Test common Lithuanian business scenarios in development
-
-2. **Prompt templates:**
-   - Pre-approved prompt structures for common post types
-   - "Restaurant food photo" → tested, safe template
-   - "Fitness class" → avoid human figures, use equipment/environment
-   - "Hair salon" → show finished hairstyles, not cutting process
-
-3. **Error handling:**
-   - Catch `content_policy_violation` errors gracefully
-   - Show helpful message: "Image request blocked by safety filter. Try a different description."
-   - Provide alternative: generic stock photo or text-only post
-   - Log violations to identify patterns and improve prompts
-
-4. **Fallback strategy:**
-   - Offer "Skip image" option if generation fails
-   - Retry with simplified/generic prompt automatically
-   - Consider alternative image generation API as fallback (if cost-effective)
-   - Use pre-generated image library for common business types
-
-5. **Testing and monitoring:**
-   - Build test suite of 50+ Lithuanian business image prompts
-   - Track content policy violation rate
-   - Alert if violation rate exceeds 5% (indicates systemic issue)
-   - Continuously refine prompt templates based on production data
-
-**Detection warning signs:**
-- High `content_policy_violation` error rate in logs
-- User reports of "can't generate images"
-- Specific business types consistently fail
-- Support requests: "Why was my image blocked?"
-
-**Phase mapping:**
-- **Phase 1 (Foundation):** Build and test prompt templates, implement translation layer
-- **Phase 2 (MVP):** Add error handling, fallback options, monitoring
-- **Phase 3+:** Refine templates based on production violations, consider alternative providers
-
-**Sources:**
-- [DALL-E Content Policy Violations](https://community.openai.com/t/dall-e-falsely-and-repeatedly-claiming-im-breaking-content-policies-pure-lies/468967)
-- [DALL-E 3 Non-English Prompt Issues](https://community.openai.com/t/concerns-over-stringent-content-policy-blocks-in-dall-e-3-api-especially-for-non-english-prompts/478274)
-- [DALL-E Content Policy FAQ](https://help.openai.com/en/articles/6468065-dall-e-content-policy-faq)
-
----
-
-### Pitfall 5: No-Database Architecture Blindspots
-
-**What goes wrong:**
-Stateless architecture with no database means no usage tracking, error logging, user history, or improvement feedback loop. Can't identify which users have problems, which prompts fail, or how to optimize. Can't implement rate limiting, can't fix user-reported bugs without reproduction, can't A/B test improvements. Tool becomes a black box.
-
-**Why it happens:**
-- "No database" decision trades complexity for simplicity
-- Serverless functions execute independently with no shared state
-- Client-side localStorage limited to 5MB, not accessible across devices
-- No way to correlate user sessions without authentication
-- Can't persist data between serverless function invocations
-- Performance: localStorage is synchronous and blocks main thread
-
-**Real-world impact:**
-- Stateless apps face data synchronization problems across distributed systems
-- Can't track API usage per user/session (cost attribution impossible)
-- No audit trail for debugging production issues
-- Can't build features requiring history (favorites, templates, refinement)
-- Research shows stateless apps "need to retrieve data from external sources on each request, leading to additional processing time"
-
-**Consequences:**
-- Can't implement effective rate limiting (IP-based only, easily bypassed)
-- No usage analytics to guide product development
-- Can't offer "saved posts" or "post history" (common user expectation)
-- Can't detect and block abuse (bot traffic, API key theft)
-- No foundation for future features (user accounts, billing, collaboration)
-
-**Prevention strategies:**
-
-1. **Minimal state storage (pragmatic hybrid):**
-   - Use Vercel KV (Redis) for lightweight state without full database
-   - Store: IP rate limits, temporary job status, cost tracking aggregates
-   - Avoid: user accounts, full post history (out of scope)
-   - Cost: ~$5-10/month for low-traffic app
-
-2. **Client-side state with limitations:**
-   - Use sessionStorage (not localStorage) for single-session data
-   - Store generated posts client-side for current session only
-   - Clear warning: "Posts not saved. Download before closing."
-   - IndexedDB for larger client-side storage (but not accessible across devices)
-
-3. **Logging and monitoring:**
-   - Vercel Analytics for function invocations, errors, performance
-   - Console.log API calls with anonymized identifiers (IP hash)
-   - Weekly log exports for trend analysis
-   - Error tracking service (Sentry free tier) for production issues
-
-4. **IP-based rate limiting:**
-   - Vercel Edge Config for IP-based rate limits (fast, lightweight)
-   - Limit: 5 generations/hour per IP
-   - Store limits in Edge Config, check on each request
-   - Accept limitation: VPN/proxy users can bypass (but adds friction)
-
-5. **Future-proofing:**
-   - Design API endpoints to accept optional user ID (prepare for auth later)
-   - Structure code to make database addition non-breaking
-   - Document "future database migration" as Phase 4+ roadmap item
-   - Accept MVP constraints, plan evolution path
-
-**Detection warning signs:**
-- Can't answer basic questions: "How many posts generated today?"
-- User complaints: "I lost my generated posts"
-- Support burden: can't reproduce user-reported bugs
-- Feature requests requiring state: "Save favorite templates"
-
-**Phase mapping:**
-- **Phase 1 (Foundation):** Accept no-database constraint, implement Vercel KV for rate limiting only
-- **Phase 2 (MVP):** Add minimal logging/monitoring, IP-based limits
-- **Phase 3+:** Evaluate if user demand justifies database addition
-
-**Sources:**
-- [Stateless Application Pitfalls](https://www.redhat.com/en/topics/cloud-native-apps/stateful-vs-stateless)
-- [Client-Side Storage Limitations](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria)
-- [LocalStorage vs IndexedDB Best Practices](https://dev.to/tene/localstorage-vs-indexeddb-javascript-guide-storage-limits-best-practices-fl5)
-
----
-
-## Moderate Pitfalls
-
-Mistakes that cause delays, technical debt, or poor user experience but are fixable.
-
-### Pitfall 6: Poor Prompt Engineering Leading to Generic Content
-
-**What goes wrong:**
-Vague or poorly structured prompts produce generic, low-value AI content that users could get from any free tool. "Create a Facebook post about my restaurant" → generic "Come visit us!" copy that doesn't reflect business personality, Lithuanian cultural context, or competitive differentiation.
-
-**Why it happens:**
-- Vague prompts lead to generic responses (most common AI mistake)
-- Lack of context in prompt (business type, tone, audience, goal)
-- Not specifying role/perspective for AI
-- Insufficient examples/constraints in system prompt
-- "Prompt and pray" approach without iteration
+- Existing users abandon the product (conversion killer)
+- Viral growth stops (sharing links now require signup)
+- SEO/preview features break (crawlers can't access content)
+
+**Warning signs:**
+- Middleware blocks all pages with `matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']`
+- No distinction between authenticated-optional vs authenticated-required routes
+- LocalStorage/SessionStorage anonymous state not migrated to database on signup
 
 **Prevention:**
-- Structured prompt templates with clear sections (role, context, constraints, format)
-- Include business-specific context: "Family-owned restaurant in Vilnius, traditional Lithuanian cuisine, target audience: locals 25-45"
-- Specify tone: "Warm, professional, slightly humorous"
-- Few-shot examples in system prompt
-- A/B test prompts during development, track quality metrics
-- Iterate based on user feedback
+1. **Preserve anonymous path** - Core tool functionality remains accessible without auth
+2. **Progressive authentication** - Prompt signup AFTER user experiences value (e.g., "Save your design?" prompt after generation)
+3. **Session migration strategy** - When anonymous user signs up:
+   ```typescript
+   // Store anonymous session ID in localStorage
+   // On signup/signin, check for pending anonymous data
+   // Migrate anonymous_session_id data to authenticated user_id
+   ```
+4. **Route segmentation**:
+   - Public: `/` (landing), `/generate` (tool), `/preview/:id` (sharing)
+   - Authenticated: `/dashboard`, `/saved`, `/settings`
+   - Premium: `/templates/premium`, `/api/high-res-export`
 
 **Detection:**
-- User feedback: "Content is too generic"
-- Low publish rates (users don't use generated content)
-- Similar outputs for different business types
-
-**Phase mapping:**
-- **Phase 1:** Build baseline prompt templates
-- **Phase 2:** Refine based on user testing
-- **Phase 3+:** Implement prompt optimization based on production data
+- Monitor bounce rate on landing page vs tool page
+- Track conversion funnel: anonymous usage → signup
+- Alert if middleware blocks crawlers (check User-Agent)
 
 **Sources:**
-- [Common AI Prompt Mistakes](https://www.godofprompt.ai/blog/common-ai-prompt-mistakes-and-how-to-fix-them)
-- [Prompt Engineering Best Practices](https://www.ibm.com/think/prompt-engineering)
+- [Top 5 authentication solutions for secure Next.js apps in 2026](https://workos.com/blog/top-authentication-solutions-nextjs-2026)
+- [Next.js Authentication Best Practices](https://nextjs.org/docs/pages/building-your-application/authentication)
 
 ---
 
-### Pitfall 7: Image Download and Storage Handling
+### P2: Database Connection Pooling Failure in Serverless/Edge
+
+**Severity:** Project-killer
+**Category:** Infrastructure
+**Phase:** Database setup (Phase 2)
 
 **What goes wrong:**
-DALL-E returns temporary URLs that expire in 1 hour. If user doesn't download image immediately, it's lost. No guidance on how to save images leads to frustration. Large Base64 images in client state cause memory issues.
+Traditional database connection pooling breaks in Next.js Edge Runtime and serverless functions. Each invocation tries to open new connections, exhausting database connection limits and causing "too many connections" errors.
 
 **Why it happens:**
-- DALL-E URLs expire after 60 minutes (security measure)
-- No built-in image storage in stateless architecture
-- Users expect images to persist like SaaS tools
-- Base64 encoding bloats image size ~33%
+- Edge functions are stateless with no shared connection pool across invocations
+- TCP-based databases (PostgreSQL, MySQL) don't work from Edge/Cloudflare Workers
+- Connection pooling libraries like `pg` expect persistent Node.js runtime
+
+**Consequences:**
+- App works perfectly in development (single long-running process)
+- Crashes immediately in production (300+ edge locations × multiple functions = thousands of connections)
+- Database refuses new connections → complete outage
+- No warning until deployment to Vercel/production environment
+
+**Warning signs:**
+- Using Prisma Client with standard `@prisma/client` in Edge Runtime
+- Using `pg` or `mysql2` directly in API routes/middleware
+- Database config shows max_connections: 100 but app has 50+ serverless functions
+- Error: "remaining connection slots are reserved for non-replication superuser connections"
 
 **Prevention:**
-- Download DALL-E images to Blob immediately on generation
-- Provide instant download button with filename: "business-post-2026-01-25.png"
-- Clear messaging: "Download your image now - link expires in 1 hour"
-- Convert to optimal format (JPEG 80% quality for social media)
-- Consider temporary S3/Cloudinary storage for session (if budget allows)
-- Show image preview with prominent "Download" CTA
+
+**For Edge Runtime:**
+1. **Use HTTP-based database drivers**:
+   ```typescript
+   // DO: HTTP-based (works in Edge)
+   import { neon } from '@neondatabase/serverless';
+   import { PrismaNeon } from '@prisma/adapter-neon';
+
+   // DON'T: TCP-based (breaks in Edge)
+   import { PrismaClient } from '@prisma/client';
+   ```
+
+2. **Use managed connection pooling**:
+   - **Prisma Accelerate** - Global database cache + connection pooler
+   - **Neon Serverless Driver** - HTTP database access
+   - **Supabase Pooler** - Connection pooling for PostgreSQL
+
+3. **Route segmentation by runtime**:
+   ```typescript
+   // middleware.ts - Edge Runtime (thin checks)
+   export const config = { runtime: 'edge' };
+
+   // app/api/posts/route.ts - Node Runtime (database queries)
+   export const runtime = 'nodejs';
+   ```
+
+**For Node.js Serverless:**
+1. **Connection pooling with limits**:
+   ```typescript
+   // Prisma connection limit
+   datasource db {
+     url = env("DATABASE_URL")
+     connectionLimit = 5  // Per function instance
+   }
+   ```
+
+2. **External pooler** (PgBouncer, Neon, Supabase):
+   ```env
+   DATABASE_URL="postgresql://user:pass@db.example.com:5432/db"
+   DATABASE_POOLER_URL="postgresql://user:pass@pooler.example.com:6543/db"
+   ```
 
 **Detection:**
-- User complaints: "Where did my image go?"
-- High support burden explaining download process
-- Images not appearing in generated posts
-
-**Phase mapping:**
-- **Phase 1:** Implement auto-download on generation
-- **Phase 2:** Add session-based temporary storage if needed
-- **Phase 3+:** Consider permanent storage with user accounts
+- Load test with 100+ concurrent requests before launch
+- Monitor `pg_stat_activity` query in PostgreSQL dashboard
+- Set database connection alerts at 70% capacity
+- Test on Vercel preview deployment (not just local)
 
 **Sources:**
-- [DALL-E Image URL Lifetime](https://community.openai.com/t/dall-e-api-image-url-lifetime/53672)
-- [DALL-E to S3 Storage Best Practices](https://medium.com/codex/from-dall-e-2-to-s3-storing-ai-generated-images-in-the-cloud-e8bbc477ee)
+- [Database access on the Edge with Next.js, Vercel & Prisma Accelerate](https://www.prisma.io/blog/database-access-on-the-edge-8F0t1s1BqOJE)
+- [The Problem with Using Databases on the Edge/Serverless](https://dev.to/reggi/the-problem-with-using-databases-on-the-edge-serverless-50fp)
+- [Edge Runtime vs Node.js Runtime: When Your Serverless Functions Mysteriously Fail](https://dev.to/pockit_tools/edge-runtime-vs-nodejs-runtime-when-your-serverless-functions-mysteriously-fail-14a)
+- [Connection Pooling with Vercel Functions](https://vercel.com/guides/connection-pooling-with-serverless-functions)
 
 ---
 
-### Pitfall 8: Kie.ai Proxy Reliability as Single Point of Failure
+### P3: Stripe Webhook Race Conditions (Double Charges/False Cancellations)
+
+**Severity:** Project-killer (legal/financial risk)
+**Category:** Payments
+**Phase:** Stripe integration (Phase 3)
 
 **What goes wrong:**
-Using kie.ai as sole OpenAI proxy creates dependency on third-party service. If kie.ai has downtime, rate limits, or changes pricing, entire tool becomes unavailable. No fallback means 100% service disruption.
+Stripe sends the same webhook multiple times to guarantee delivery. Without idempotency, webhooks process multiple times causing:
+- Users get charged twice for same subscription
+- Accounts falsely marked as cancelled
+- Credits added multiple times for same payment
 
 **Why it happens:**
-- Cost savings (kie.ai 30-50% cheaper than direct OpenAI)
-- Simplified billing (kie.ai credits vs. OpenAI usage)
-- Assumption that proxy is reliable as original API
+- Webhook handler doesn't check if event already processed
+- Database race condition: two webhook handlers check "event exists?" simultaneously, both return false, both process
+- Idempotency check passes but commit fails, retry processes again
 
-**Real-world concerns:**
-- Limited user reviews (only 2 Trustpilot reviews as of Dec 2025)
-- Customer support accessibility issues reported
-- Not officially verified on some directories
-- Integration requires technical expertise
+**Consequences:**
+- Financial liability (overcharging customers)
+- Legal issues (PCI compliance, consumer protection)
+- Data corruption (subscription states out of sync with Stripe)
+- Customer support nightmare (reconciling payment states)
+
+**Warning signs:**
+```typescript
+// DANGER: No idempotency check
+export async function POST(req: Request) {
+  const event = await stripe.webhooks.constructEvent(...);
+
+  if (event.type === 'payment_intent.succeeded') {
+    await grantUserAccess(event.data.object.customer);  // Runs multiple times!
+  }
+}
+```
 
 **Prevention:**
-- Abstract API calls behind service layer (easy provider swap)
-- Monitor kie.ai uptime and response times
-- Build OpenAI direct API fallback (use in case of kie.ai failure)
-- Set timeout thresholds: if kie.ai fails, switch to OpenAI
-- Compare costs: kie.ai savings vs. reliability risk
-- Keep OpenAI API key funded as backup
-- Consider starting with direct OpenAI, migrate to kie.ai after validation
+
+**1. Event ID Tracking (Essential)**
+```typescript
+// CORRECT: Idempotency with database constraint
+export async function POST(req: Request) {
+  const event = await stripe.webhooks.constructEvent(...);
+
+  // Atomic check + insert with unique constraint
+  try {
+    await db.webhookEvent.create({
+      data: {
+        id: event.id,  // Unique constraint on Stripe event ID
+        type: event.type,
+        processedAt: new Date(),
+      }
+    });
+  } catch (error) {
+    if (error.code === 'P2002') {  // Unique constraint violation
+      return new Response('Event already processed', { status: 200 });
+    }
+    throw error;
+  }
+
+  // Process event (guaranteed to run once)
+  await processStripeEvent(event);
+}
+```
+
+**2. Database Schema for Idempotency**
+```sql
+CREATE TABLE webhook_events (
+  id VARCHAR(255) PRIMARY KEY,  -- Stripe event ID
+  type VARCHAR(100) NOT NULL,
+  processed_at TIMESTAMP DEFAULT NOW(),
+  CONSTRAINT unique_stripe_event_id UNIQUE (id)
+);
+```
+
+**3. Optimistic Locking for Subscription State**
+```typescript
+// Prevent race condition on subscription updates
+await db.subscription.update({
+  where: {
+    id: subscriptionId,
+    version: currentVersion  // Optimistic locking
+  },
+  data: {
+    status: 'active',
+    version: { increment: 1 }
+  }
+});
+```
+
+**4. Queue-Based Processing (Advanced)**
+```typescript
+// Serialize webhook processing with Redis queue
+import { Queue } from 'bullmq';
+
+const webhookQueue = new Queue('stripe-webhooks', {
+  connection: redisConnection
+});
+
+export async function POST(req: Request) {
+  const event = await stripe.webhooks.constructEvent(...);
+
+  // Add to queue (idempotent job ID)
+  await webhookQueue.add('process-event', event, {
+    jobId: event.id,  // Prevents duplicate jobs
+    attempts: 3,
+    backoff: { type: 'exponential', delay: 2000 }
+  });
+
+  return new Response('Queued', { status: 200 });
+}
+```
 
 **Detection:**
-- Increased 5xx errors from kie.ai endpoints
-- Slower response times than expected
-- User reports of "service unavailable"
-- Cost comparison shows kie.ai savings are marginal
-
-**Phase mapping:**
-- **Phase 1:** Start with direct OpenAI for reliability, evaluate kie.ai in Phase 2
-- **Phase 2:** A/B test kie.ai proxy, implement fallback logic
-- **Phase 3+:** Choose primary provider based on cost/reliability data
+- Monitor for duplicate `webhook_events.id` insert errors (should be 0)
+- Track subscription state changes: alert if state changes twice within 1 second
+- Compare Stripe dashboard event log vs database `webhook_events` count
+- Set up Stripe webhook logs monitoring for repeated deliveries
 
 **Sources:**
-- [Kie.ai Reviews and Reliability](https://www.trustpilot.com/review/kie.ai)
-- [Kie.ai Documentation](https://docs.kie.ai)
+- [Stripe Webhooks: Solving Race Conditions and Building a Robust Credit Management System](https://www.pedroalonso.net/blog/stripe-webhooks-solving-race-conditions/)
+- [The Race Condition You're Probably Shipping Right Now With Stripe Webhooks](https://dev.to/belazy/the-race-condition-youre-probably-shipping-right-now-with-stripe-webhooks-mj4)
+- [Building Reliable Stripe Subscriptions: Webhook Idempotency and Optimistic Locking](https://dev.to/aniefon_umanah_ac5f21311c/building-reliable-stripe-subscriptions-in-nestjs-webhook-idempotency-and-optimistic-locking-3o91)
+- [Best practices I wish we knew when integrating Stripe webhooks](https://www.stigg.io/blog-posts/best-practices-i-wish-we-knew-when-integrating-stripe-webhooks)
 
 ---
 
-### Pitfall 9: Lack of Streaming Creates Poor UX Perception
+## MAJOR PITFALLS (Rewrites/Significant Delays)
+
+### P4: Storing Images in Database Instead of Object Storage
+
+**Severity:** Major (cost + performance)
+**Category:** Database Design
+**Phase:** Database setup (Phase 2)
 
 **What goes wrong:**
-Non-streaming responses force users to stare at blank screen or spinner for 15-30 seconds. No feedback during processing. Users can't tell if tool is working or broken. Research shows this leads to immediate abandonment.
+Developers store generated images as BLOBs in PostgreSQL/MySQL database. Database size explodes, costs skyrocket, query performance degrades, and backups become unmanageable.
 
 **Why it happens:**
-- Simpler to implement: one request, one response
-- Assumption that loading spinner is sufficient feedback
-- Underestimating user expectations for AI tools in 2026
-- Not realizing streaming dramatically improves perceived performance
+- "It's simpler to keep everything in one place"
+- Avoiding S3 API complexity initially
+- Not calculating storage costs accurately
 
-**Real-world impact:**
-- Users find themselves "staring at loading spinners for 5, 10, even up to 40s"
-- Token-by-token streaming "makes AI products feel instant, alive, and trustworthy"
-- Time to first token drops dramatically with streaming
-- Users can interrupt early if they have "enough" information
+**Consequences:**
+- **Cost explosion**: PostgreSQL storage is 10-50x more expensive than S3
+  - Example: 10,000 users × 50 images × 200KB = 100GB
+  - Database storage: $100-300/month (depending on provider)
+  - S3 Standard storage: $2.30/month (100GB × $0.023/GB)
+- **Performance degradation**: Queries slow down as table size grows
+- **Backup costs**: Database backups include image BLOBs (expensive, slow)
+- **Migration pain**: Moving images out of database later requires rewrite
+
+**Warning signs:**
+```typescript
+// DANGER: Storing images in database
+CREATE TABLE posts (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  image_data BYTEA,  // Image stored directly in database
+  created_at TIMESTAMP
+);
+```
 
 **Prevention:**
-- Implement streaming for text generation (Vercel AI SDK)
-- Show progressive updates: "Analyzing business type..." → "Crafting headline..." → "Writing post..."
-- Display token-by-token text generation
-- Image generation progress: "Creating image (this takes 15-20 seconds)..."
-- Allow cancellation if taking too long
-- Set expectations: "Generation typically takes 30-60 seconds"
+
+**1. Store images in object storage, references in database**
+```typescript
+// CORRECT: Object storage with database reference
+CREATE TABLE posts (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  image_url TEXT,  // S3/R2 URL only (100 bytes)
+  storage_key TEXT,  // For deletion
+  created_at TIMESTAMP
+);
+
+// Upload flow
+const key = `posts/${userId}/${postId}.png`;
+await s3.putObject({ Bucket: 'app-images', Key: key, Body: imageBuffer });
+
+await db.post.create({
+  data: {
+    userId,
+    imageUrl: `https://cdn.example.com/${key}`,
+    storageKey: key
+  }
+});
+```
+
+**2. Choose cost-effective storage tier**
+- **S3 Standard**: Frequently accessed images (user dashboards) - $0.023/GB/month
+- **S3 Intelligent-Tiering**: Mixed access patterns (archive old posts) - Auto-optimizes
+- **Cloudflare R2**: No egress fees (good for public sharing) - $0.015/GB/month
+- **Backblaze B2**: Cheapest option - $0.005/GB/month
+
+**3. Lifecycle policies for cost control**
+```typescript
+// Delete generated images after 90 days if not saved
+const lifecycleRule = {
+  Rules: [{
+    Id: 'delete-temporary-posts',
+    Filter: { Prefix: 'posts/temp/' },
+    Status: 'Enabled',
+    Expiration: { Days: 90 }
+  }]
+};
+```
+
+**4. CDN for performance**
+```typescript
+// CloudFront/Cloudflare CDN in front of S3
+// Reduces origin requests by 95%+
+const imageUrl = `https://cdn.example.com/${storageKey}`;
+```
+
+**Cost comparison (10,000 users, 50 images each, 200KB avg):**
+| Storage Solution | Monthly Cost | Notes |
+|------------------|--------------|-------|
+| PostgreSQL (Neon) | $100-200 | Includes compute, limited storage |
+| PostgreSQL (RDS) | $300+ | Separate storage pricing |
+| S3 Standard | $2.30 | 100GB × $0.023/GB |
+| S3 + CloudFront | $3.50 | +$1.20 for CDN requests |
+| Cloudflare R2 | $1.50 | Free egress |
 
 **Detection:**
-- High bounce rate on generation page
-- Analytics show long session times but no completion
-- User feedback: "Is it working?"
-- Comparison: competitors feel faster even if they're not
-
-**Phase mapping:**
-- **Phase 1:** Implement streaming BEFORE launch (core UX requirement)
-- **Phase 2:** Refine progress messaging based on user feedback
-- **Phase 3+:** Optimize streaming performance
+- Monitor database size growth (alert if >10GB/week unexpected growth)
+- Check top tables by size: `SELECT pg_size_pretty(pg_total_relation_size('posts'));`
+- Review query performance for image-heavy tables
 
 **Sources:**
-- [Streaming AI Responses Best Practices](https://www.9.agency/blog/streaming-ai-responses-vercel-ai-sdk)
-- [Streaming vs Non-Streaming UX](https://medium.com/@yrgenkuci/the-streaming-revolution-how-ais-real-time-language-models-are-changing-the-game-d9d0beb18ae2)
+- [Storing Images: Database vs Filesystem – Pros, Cons & Best Practices](https://www.codegenes.net/blog/storing-images-in-a-database-versus-a-filesystem/)
+- [AWS S3 Storage Classes: 2026 Cost Optimization Roadmap](https://costimizer.ai/blogs/aws-s3-storage)
+- [Cloud Storage Pricing Comparison: AWS S3, GCP, Azure, and B2](https://www.backblaze.com/cloud-storage/pricing)
+- [The Cost Structure of Using Nextjs Image](https://indie-starter.dev/blog/the-cost-of-using-nextjs-image)
 
 ---
 
-## Minor Pitfalls
+### P5: OAuth Provider Approval Process Delays Launch
 
-Mistakes that cause annoyance but are easily fixable.
-
-### Pitfall 10: Mobile-First Design Neglect
-
-**What goes wrong:**
-Small business owners use phones for everything. Text designed on desktop looks tiny on mobile. Wrong image dimensions get cropped on Instagram. Over 70% of social media consumption is mobile.
-
-**Prevention:**
-- Design mobile-first (320px viewport minimum)
-- Test on actual phones, not just browser DevTools
-- Use responsive image dimensions
-- Keep text overlays to 10-15 words maximum
-- Test Instagram/Facebook preview rendering
-
-**Phase mapping:** Phase 1 (Foundation) - Mobile-first from day one
-
----
-
-### Pitfall 11: Insufficient User Onboarding for Non-Technical Users
+**Severity:** Major (timeline risk)
+**Category:** Authentication
+**Phase:** OAuth setup (Phase 1)
 
 **What goes wrong:**
-Target users (small service providers) don't understand AI tools. Need guidance on what to input, what to expect, how to refine results. Drop off at first screen without onboarding.
+Teams underestimate OAuth app review timelines. Google OAuth verification takes 3-7 days (or weeks for restricted scopes), Facebook app review requires 6+ resubmissions, and incomplete applications cause rejection loops.
+
+**Why it happens:**
+- "We'll handle OAuth approval during launch week" (too late)
+- Missing required documentation (privacy policy, terms of service)
+- Poor quality app review submissions (low-res screenshots, unclear descriptions)
+- Not understanding platform-specific requirements
+
+**Consequences:**
+- Launch delayed 2-4 weeks waiting for approval
+- Users can't sign up with Google/Facebook (major conversion blocker)
+- App stuck in "testing" mode with 100-user limit
+- Multiple rejection cycles extend delays
+
+**Warning signs:**
+- Privacy policy link points to non-existent page
+- OAuth consent screen set to "Internal" or "Testing" status
+- Missing live demo URL for app reviewers
+- Screenshots don't show actual OAuth permission usage
+- No terms of service URL
 
 **Prevention:**
-- Simple onboarding flow: "Tell us about your business in 2-3 sentences"
-- Show example inputs: "Kirpykla Vilniuje, modernūs kirpimai, jauna komanda"
-- Preview what tool will generate
-- Tooltips and helper text throughout
-- Video tutorial (30 seconds, Lithuanian)
 
-**Phase mapping:** Phase 2 (MVP) - Add after core functionality works
+**1. Start OAuth approval 2-3 weeks before launch**
+```markdown
+Timeline:
+Week -3: Submit initial OAuth applications
+Week -2: Address rejection feedback, resubmit
+Week -1: Final approval, test in production mode
+Week 0: Launch with OAuth working
+```
+
+**2. Google OAuth Verification Requirements**
+```typescript
+// Required documentation before submission
+const requirements = {
+  privacyPolicy: 'https://example.com/privacy',  // Must be live, accessible
+  termsOfService: 'https://example.com/terms',
+  homepageURL: 'https://example.com',
+
+  // OAuth Consent Screen
+  appName: 'Social Post Generator',
+  appLogo: 'logo.png',  // 120x120px minimum
+  supportEmail: 'support@example.com',
+  scopes: [
+    'openid',
+    'email',
+    'profile'
+    // DON'T request unnecessary scopes (red flag)
+  ],
+
+  // App review submission
+  scopeJustification: 'We use email scope to create user accounts and send...',
+  youtubeVideoDemo: 'https://youtube.com/demo',  // Show OAuth flow
+  screenshots: [
+    'oauth-consent-screen.png',  // High quality (1920x1080)
+    'after-login-dashboard.png'
+  ]
+};
+```
+
+**3. Facebook App Review Requirements**
+```typescript
+// Required for Facebook Login permission
+const facebookReview = {
+  // Must provide live demo
+  testUser: {
+    email: 'test@example.com',
+    password: 'TestPassword123!'
+  },
+
+  // Screencast video showing:
+  steps: [
+    'User clicks "Login with Facebook"',
+    'Facebook login dialog appears',
+    'User grants permission',
+    'User redirects to dashboard with Facebook data'
+  ],
+
+  // Common rejection reasons to avoid:
+  avoidances: [
+    'DON\'T submit PDF instructions (rejected)',
+    'DON\'T require reviewer to submit data (they won\'t)',
+    'DON\'T use low-quality screenshots',
+    'DO show actual working feature in video'
+  ]
+};
+```
+
+**4. Development Mode Workarounds (During Approval)**
+```typescript
+// Allow testing with test users while waiting for approval
+// Google: Add test users in OAuth consent screen
+const testUsers = [
+  'developer@example.com',
+  'tester1@example.com'
+  // Up to 100 test users allowed
+];
+
+// Facebook: Add test users in App Roles
+// Can test all features without approval
+```
+
+**5. Common Rejection Reasons Checklist**
+- [ ] Privacy policy URL returns 404 or generic template
+- [ ] Privacy policy doesn't mention OAuth data usage
+- [ ] App description too vague ("Login with Google")
+- [ ] Screenshots are low quality or don't show feature
+- [ ] Scope justification insufficient ("We need email to identify users")
+- [ ] Homepage URL is localhost or non-HTTPS
+- [ ] Video demo doesn't show actual OAuth flow
+- [ ] App is set to "Internal" instead of "External"
+
+**Detection:**
+- Set calendar reminder 3 weeks before launch to start OAuth submissions
+- Monitor OAuth application status weekly
+- Test with non-developer accounts to verify approval status
 
 **Sources:**
-- [Small Business AI Adoption Barriers](https://aristeksystems.com/blog/whats-going-on-with-ai-in-2025-and-beyond/)
-- [AI Tool User Frustration](https://www.letsgroto.com/blog/ai-ux-design-mistakes)
+- [How to Pass Google OAuth Verification for Workspace Add-ons (My Full 2025 Guide)](https://medium.com/@info.brightconstruct/the-real-oauth-journey-getting-a-google-workspace-add-on-verified-fc31bc4c9858)
+- [Google OAuth Developer Reviews Explained](https://www.cloudsponge.com/blog/google-oauth-reviews/)
+- [Navigating the Facebook App Review Process](https://dancerscode.com/posts/navigating-the-facebook-app-review-process/)
+- [Comply with OAuth 2.0 policies](https://developers.google.com/identity/protocols/oauth2/production-readiness/policy-compliance)
 
 ---
 
-### Pitfall 12: Ignoring Accessibility
+### P6: Session/Cache Poisoning Across Users
+
+**Severity:** Major (security + data leak)
+**Category:** Authentication + Database
+**Phase:** Authentication + caching implementation (Phase 1-2)
 
 **What goes wrong:**
-Social media platforms penalize inaccessible content. Generated images need alt text, color contrast must be sufficient, text must be readable.
+Cache keys don't include user identifiers. User A's dashboard shows User B's data because both hit the same cache key.
+
+**Why it happens:**
+- Migrating from anonymous (single cache for everyone) to authenticated (per-user cache)
+- Cache key like `dashboard_posts` instead of `user_${userId}_dashboard_posts`
+- Next.js route caching doesn't account for user session
+
+**Consequences:**
+- **Data leaks**: Users see other users' private data
+- **PCI/Privacy violations**: GDPR, CCPA violations if sensitive data exposed
+- **Trust destruction**: Users discover the leak, PR disaster
+
+**Warning signs:**
+```typescript
+// DANGER: Cache not scoped to user
+export async function GET(req: Request) {
+  const posts = await redis.get('dashboard_posts');  // Same for all users!
+  if (posts) return Response.json(posts);
+
+  const session = await getSession(req);
+  const freshPosts = await db.post.findMany({
+    where: { userId: session.userId }
+  });
+  await redis.set('dashboard_posts', freshPosts);  // Overwrites previous user's cache
+  return Response.json(freshPosts);
+}
+```
 
 **Prevention:**
-- Auto-generate alt text for images (can use AI)
-- Ensure color contrast meets WCAG AA standards
-- Copy image text to post caption automatically
-- Test with screen readers
-- Plain language (8th-grade reading level)
 
-**Phase mapping:** Phase 2 (MVP) - Basic accessibility, improve in Phase 3
+**1. Always scope cache keys by user**
+```typescript
+// CORRECT: User-scoped cache key
+export async function GET(req: Request) {
+  const session = await getSession(req);
+  const cacheKey = `user:${session.userId}:dashboard_posts`;
+
+  const cached = await redis.get(cacheKey);
+  if (cached) return Response.json(cached);
+
+  const posts = await db.post.findMany({
+    where: { userId: session.userId }
+  });
+  await redis.set(cacheKey, posts, { ex: 300 });  // 5 min TTL
+  return Response.json(posts);
+}
+```
+
+**2. Next.js Route Segment Config**
+```typescript
+// app/dashboard/page.tsx
+export const dynamic = 'force-dynamic';  // Prevent static caching of user data
+export const revalidate = 0;  // Never cache authenticated routes
+```
+
+**3. Cache Invalidation on Mutations**
+```typescript
+// When user updates data, invalidate their cache
+export async function updateProfile(userId: string, data: ProfileData) {
+  await db.user.update({ where: { id: userId }, data });
+
+  // Invalidate user-specific caches
+  await redis.del(`user:${userId}:profile`);
+  await redis.del(`user:${userId}:dashboard_posts`);
+
+  // Pattern-based invalidation
+  const keys = await redis.keys(`user:${userId}:*`);
+  if (keys.length) await redis.del(...keys);
+}
+```
+
+**4. Testing Cross-User Isolation**
+```typescript
+// Test: User A should never see User B's data
+test('cache isolation between users', async () => {
+  const userA = await createUser({ email: 'a@test.com' });
+  const userB = await createUser({ email: 'b@test.com' });
+
+  const postA = await createPost({ userId: userA.id, content: 'Secret A' });
+  const postB = await createPost({ userId: userB.id, content: 'Secret B' });
+
+  // User A fetches dashboard
+  const responseA = await fetch('/api/dashboard', {
+    headers: { cookie: userA.sessionCookie }
+  });
+  const dataA = await responseA.json();
+
+  // User B fetches dashboard
+  const responseB = await fetch('/api/dashboard', {
+    headers: { cookie: userB.sessionCookie }
+  });
+  const dataB = await responseB.json();
+
+  // Assert no cross-contamination
+  expect(dataA.posts).toContainEqual(postA);
+  expect(dataA.posts).not.toContainEqual(postB);
+  expect(dataB.posts).toContainEqual(postB);
+  expect(dataB.posts).not.toContainEqual(postA);
+});
+```
+
+**Detection:**
+- Integration tests with multiple concurrent users
+- Monitoring: Alert if same cache key accessed by different userIds within 1 second
+- Manual QA: Log in as User A and User B simultaneously, verify data isolation
 
 **Sources:**
-- [Accessible Social Media Best Practices](https://digital-accessibility.northeastern.edu/accessible-social-media/)
+- [Next.js App Router: common mistakes and how to fix them](https://upsun.com/blog/avoid-common-mistakes-with-next-js-app-router/)
+- [NextAuth.js: Secure Authentication for Next.js Apps](https://strapi.io/blog/nextauth-js-secure-authentication-next-js-guide)
 
 ---
 
-## Phase-Specific Warnings
+### P7: Stripe Webhook Signature Verification Failure in Production
 
-| Phase Topic | Likely Pitfall | Mitigation Strategy |
-|-------------|---------------|---------------------|
-| **Foundation Setup** | Starting with kie.ai proxy without OpenAI fallback | Use direct OpenAI initially, evaluate kie.ai in Phase 2 |
-| **API Integration** | No spending limits before first deployment | Set hard OpenAI budget limit and alerts DAY ONE |
-| **Text Generation** | Poor Lithuanian quality from default prompts | Test 15+ Lithuanian scenarios, iterate prompts extensively |
-| **Image Generation** | DALL-E timeouts on Vercel free tier | Use Vercel Edge Functions (25s timeout) or split into async job |
-| **Image Generation** | Content policy violations on Lithuanian prompts | Translate to English before DALL-E, test all business types |
-| **Rate Limiting** | No rate limiting allows cost runaway | Implement Vercel KV rate limiting before any public access |
-| **UX Implementation** | Non-streaming creates poor perceived performance | Implement streaming from day one, not as "nice to have" |
-| **UX Implementation** | Desktop-only design alienates mobile users | Mobile-first design, test on actual devices |
-| **MVP Launch** | No usage analytics to guide improvements | Vercel Analytics + error tracking (Sentry) from launch |
-| **Post-Launch** | Can't identify why users abandon tool | Add minimal event tracking (generation started, completed, failed) |
+**Severity:** Major (security + payments broken)
+**Category:** Payments
+**Phase:** Stripe webhook implementation (Phase 3)
+
+**What goes wrong:**
+Webhooks work perfectly in development but fail signature verification in production with error: "No signatures found matching the expected signature for payload."
+
+**Why it happens:**
+- Body parsing middleware modifies raw request body before signature verification
+- Wrong webhook secret (test vs live mode secret)
+- Using `NEXT_PUBLIC_` prefix for webhook secret (exposes to client)
+- Request body encoding changed by framework
+
+**Consequences:**
+- All webhooks rejected → payments succeed but users never get access
+- Subscriptions created in Stripe but not reflected in database
+- No visibility into webhook failures without monitoring
+
+**Warning signs:**
+```typescript
+// DANGER: Body already parsed (breaks signature verification)
+export async function POST(req: Request) {
+  const body = await req.json();  // Parses body first
+  const signature = req.headers.get('stripe-signature');
+
+  // FAILS: Body already consumed/modified
+  const event = stripe.webhooks.constructEvent(
+    body,  // Should be raw body, but it's parsed JSON
+    signature,
+    webhookSecret
+  );
+}
+```
+
+**Prevention:**
+
+**1. Get Raw Body (Next.js App Router)**
+```typescript
+// CORRECT: Get raw body before parsing
+export async function POST(req: Request) {
+  const body = await req.text();  // Raw string body
+  const signature = req.headers.get('stripe-signature') as string;
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!  // NOT NEXT_PUBLIC_
+    );
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+  }
+
+  // Process event
+  await handleStripeEvent(event);
+  return new Response('Success', { status: 200 });
+}
+```
+
+**2. Get Raw Body (Pages Router)**
+```typescript
+// pages/api/webhooks/stripe.ts
+import { buffer } from 'micro';
+
+export const config = {
+  api: {
+    bodyParser: false,  // CRITICAL: Disable body parser
+  },
+};
+
+export default async function handler(req, res) {
+  const buf = await buffer(req);  // Raw buffer
+  const signature = req.headers['stripe-signature'];
+
+  const event = stripe.webhooks.constructEvent(
+    buf,
+    signature,
+    process.env.STRIPE_WEBHOOK_SECRET
+  );
+
+  await handleStripeEvent(event);
+  res.status(200).json({ received: true });
+}
+```
+
+**3. Separate Webhook Secrets for Test/Live Mode**
+```env
+# .env.local
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_test_...  # Test mode secret
+
+# .env.production
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_live_...  # Live mode secret (DIFFERENT!)
+```
+
+**4. Test Webhook Locally with Stripe CLI**
+```bash
+# Install Stripe CLI
+brew install stripe/stripe-cli/stripe
+
+# Forward webhooks to local server
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+
+# Trigger test events
+stripe trigger payment_intent.succeeded
+stripe trigger customer.subscription.created
+```
+
+**5. Production Webhook Setup Checklist**
+- [ ] Webhook endpoint registered in Stripe Dashboard (Live mode)
+- [ ] Live webhook secret added to production environment variables
+- [ ] Webhook secret DOES NOT use `NEXT_PUBLIC_` prefix
+- [ ] Body parser disabled or raw body extracted before parsing
+- [ ] Webhook URL is HTTPS (not HTTP)
+- [ ] Webhook endpoint returns 2xx response within 5 seconds
+- [ ] Event types subscribed: `payment_intent.succeeded`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`
+
+**Detection:**
+- Monitor Stripe Dashboard > Developers > Webhooks > View logs
+- Set up alerts for webhook failures (Stripe sends email after repeated failures)
+- Log signature verification errors with full error message
+- Test production webhook with `stripe trigger` before launch
+
+**Sources:**
+- [Stripe Checkout and Webhook in a Next.js 15 (2025)](https://medium.com/@gragson.john/stripe-checkout-and-webhook-in-a-next-js-15-2025-925d7529855e)
+- [Debugging Stripe Webhook Signature Verification Errors in Production](https://dev.to/nerdincode/debugging-stripe-webhook-signature-verification-errors-in-production-1h7c)
+- [How to Handle Stripe Webhooks in Next.js (The App Router Way)](https://dev.to/thekarlesi/how-to-handle-stripe-and-paystack-webhooks-in-nextjs-the-app-router-way-5bgi)
+- [Handle different modes | Stripe Documentation](https://docs.stripe.com/stripe-apps/handling-modes)
 
 ---
 
-## Confidence Assessment
+## MODERATE PITFALLS (Technical Debt/User Friction)
 
-**Overall confidence:** MEDIUM
+### P8: Next.js Image Optimization Costs Spiral Out of Control
 
-| Area | Confidence | Rationale |
-|------|-----------|-----------|
-| API Cost Pitfalls | HIGH | Verified with official OpenAI documentation, clear best practices |
-| Lithuanian Language | MEDIUM | Official government sources + AI research, but limited production data |
-| Vercel Timeouts | HIGH | Official Vercel documentation, community-reported issues |
-| DALL-E Content Policy | MEDIUM | Community reports, official FAQ, but unpredictable system behavior |
-| No-Database Architecture | MEDIUM | General stateless app research, needs project-specific validation |
-| UX/Streaming | HIGH | Verified with Vercel AI SDK docs, UX research consensus |
-| Kie.ai Reliability | LOW | Limited public information, few user reviews, needs testing |
+**Severity:** Moderate (cost)
+**Category:** Infrastructure
+**Phase:** Image handling (Phase 2)
 
----
+**What goes wrong:**
+Vercel charges per image optimization. App with 10,000 monthly visitors × 10 images per page = 100,000 optimizations = $95/month in image optimization alone (on top of hosting).
 
-## Summary: Critical Mitigation Checklist
+**Why it happens:**
+- Using Next.js `<Image>` component without understanding pricing model
+- Not leveraging CDN caching effectively
+- Generating multiple image variants on demand
 
-Before launching MVP, ensure:
+**Consequences:**
+- Vercel bill jumps from $20/month (Pro plan) to $500+/month
+- Optimizations don't cache properly (re-optimizing same images)
 
-- [ ] OpenAI spending limit set to $50/month with email alerts at 50%, 75%, 90%
-- [ ] Rate limiting implemented: 5 generations/hour per IP via Vercel KV
-- [ ] Lithuanian prompt quality tested with 15+ business scenarios
-- [ ] DALL-E prompts translated to English to avoid false positives
-- [ ] Streaming implemented for text generation (not optional)
-- [ ] Vercel Edge Functions used (25s timeout) OR split text/image into separate calls
-- [ ] Image auto-download implemented with clear 1-hour expiration messaging
-- [ ] Mobile-first design tested on actual phones
-- [ ] Error handling for all API failures (timeouts, content policy, rate limits)
-- [ ] Vercel Analytics + error tracking enabled from day one
+**Prevention:**
+1. **Use external image optimization**:
+   - Cloudflare Images: $5/month for 100,000 images
+   - Cloudinary free tier: 25,000 transformations/month
+   - imgix: $0.008 per 1,000 optimizations
 
-**Failure to address any of these creates high risk of project failure.**
+2. **Self-host with AWS Lambda**:
+   ```typescript
+   // AWS Lambda + S3: ~$0.02 per 1,000 optimizations
+   // 50,000 free tier images/month
+   ```
 
----
+3. **Aggressive CDN caching**:
+   ```typescript
+   // next.config.js
+   images: {
+     minimumCacheTTL: 31536000,  // 1 year
+     deviceSizes: [640, 750, 828, 1080, 1200],  // Limit variants
+     formats: ['webp'],  // Single format (not webp + avif)
+   }
+   ```
 
-## Sources
-
-### Official Documentation (HIGH confidence)
-- [OpenAI API Rate Limiting Best Practices](https://help.openai.com/en/articles/6891753-what-are-the-best-practices-for-managing-my-rate-limits-in-the-api)
-- [OpenAI Rate Limits Guide](https://platform.openai.com/docs/guides/rate-limits)
-- [OpenAI Error Codes](https://platform.openai.com/docs/guides/error-codes)
-- [Vercel Serverless Function Timeouts](https://vercel.com/kb/guide/what-can-i-do-about-vercel-serverless-functions-timing-out)
-- [DALL-E Content Policy FAQ](https://help.openai.com/en/articles/6468065-dall-e-content-policy-faq)
-- [Storage API Quotas](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria)
-
-### Government and Research Sources (MEDIUM-HIGH confidence)
-- [Lithuanian AI Language Solutions - €12M Initiative](https://eimin.lrv.lt/en/structure-and-contacts/news-1/eimin-12-million-for-ai-solutions-for-the-lithuanian-language/)
-- [Lithuanian Language Technology Challenges](https://tilde.ai/case-study/technology-is-crucial-to-preserve-the-lithuanian-language/)
-
-### Industry Research and Best Practices (MEDIUM confidence)
-- [AI Content Generator Common Mistakes](https://doneforyou.com/top-ai-content-mistakes/)
-- [Pitfalls of AI-Generated Content](https://beomniscient.com/blog/pitfalls-ai-generated-content/)
-- [OpenAI API Cost Tracking](https://www.toriihq.com/articles/how-to-monitor-spending-openai)
-- [OpenAI Pricing 2026](https://www.finout.io/blog/openai-pricing-in-2026)
-- [Solving Vercel's 10-Second Limit with QStash](https://medium.com/@kolbysisk/case-study-solving-vercels-10-second-limit-with-qstash-2bceeb35d29b)
-- [DALL-E Image Generation Mistakes](https://www.allaboutai.com/resources/ai-image-generator-mistakes/)
-- [Streaming AI Responses Best Practices](https://www.9.agency/blog/streaming-ai-responses-vercel-ai-sdk)
-- [AI UX Design Mistakes](https://www.letsgroto.com/blog/ai-ux-design-mistakes)
-- [Small Business AI Adoption Barriers](https://www.deloitte.com/us/en/what-we-do/capabilities/applied-artificial-intelligence/blogs/pulse-check-series-latest-ai-developments/ai-adoption-challenges-ai-trends.html)
-
-### Community Sources (LOW-MEDIUM confidence)
-- [DALL-E Content Policy Violations - Community Reports](https://community.openai.com/t/dall-e-falsely-and-repeatedly-claiming-im-breaking-content-policies-pure-lies/468967)
-- [DALL-E Non-English Prompt Issues](https://community.openai.com/t/concerns-over-stringent-content-policy-blocks-in-dall-e-3-api-especially-for-non-english-prompts/478274)
-- [Kie.ai Reviews](https://www.trustpilot.com/review/kie.ai)
-- [LocalStorage Best Practices](https://dev.to/tene/localstorage-vs-indexeddb-javascript-guide-storage-limits-best-practices-fl5)
+**Sources:**
+- [The Cost Structure of Using Nextjs Image](https://indie-starter.dev/blog/the-cost-of-using-nextjs-image)
+- [Cutting Vercel Costs by 80%](https://www.howdygo.com/blog/cutting-howdygos-vercel-costs-by-80-without-compromising-ux-or-dx)
 
 ---
 
-**Research complete. This document provides actionable pitfall identification and prevention strategies for roadmap planning.**
+### P9: Auth Library Lock-in and Migration Pain
+
+**Severity:** Moderate (flexibility)
+**Category:** Authentication
+**Phase:** Auth library selection (Phase 1)
+
+**What goes wrong:**
+Teams choose Clerk for rapid development, then need features Clerk doesn't support (custom OAuth provider, specific session management). Migration to different auth system requires rewriting entire authentication layer.
+
+**Why it happens:**
+- Choosing "easiest" solution without evaluating long-term needs
+- Not understanding vendor lock-in trade-offs
+- Auth.js (NextAuth) v4→v5 migration breaking changes
+
+**Consequences:**
+- Stuck with vendor limitations (Clerk rate limits, pricing tiers)
+- Major refactor needed to switch auth providers
+- User session migration during provider switch
+
+**Prevention:**
+1. **Evaluate auth needs upfront**:
+   ```typescript
+   const authRequirements = {
+     providers: ['Google', 'Facebook', 'Email/Password'],
+     customization: 'Medium',  // Custom UI vs pre-built
+     userManagement: 'In-app',  // vs external dashboard
+     cost: 'Low',  // Free tier vs paid
+     portability: 'High'  // Can migrate away easily
+   };
+   ```
+
+2. **Auth library comparison for Social Post Generator**:
+   | Library | Setup Time | Cost | Customization | Lock-in | Recommendation |
+   |---------|------------|------|---------------|---------|----------------|
+   | **Clerk** | 5 min | $25/month (1,000 MAU) | Low | High | Good for MVP, risky long-term |
+   | **Auth.js** | 30 min | $0 | High | Medium | Best balance |
+   | **Better Auth** | 20 min | $0 | Very High | Low | Best for custom needs |
+   | **Supabase Auth** | 15 min | $0-25/month | Medium | Medium | Good if using Supabase DB |
+
+3. **Recommendation for v2.0**: **Auth.js (NextAuth v5)** or **Better Auth**
+   - Open source (no vendor lock-in)
+   - Free (database is only cost)
+   - Supports Google/Facebook OAuth
+   - Full control over session management
+   - Can migrate anonymous users to authenticated
+
+**Sources:**
+- [NextAuth.js vs Clerk vs Auth.js — Which Is Best for Your Next.js App in 2025?](https://chhimpashubham.medium.com/nextauth-js-vs-clerk-vs-auth-js-which-is-best-for-your-next-js-app-in-2025-fc715c2ccbfd)
+- [Clerk vs Kinde vs Better Auth: How to Choose the Right Next.js Authentication Library](https://www.freecodecamp.org/news/how-to-choose-the-right-nextjs-authentication-library/)
+- [BetterAuth vs NextAuth: Choose the Right Auth Library for Your SaaS](https://www.devtoolsacademy.com/blog/betterauth-vs-nextauth/)
+
+---
+
+### P10: Free Tier Abuse Without Rate Limiting
+
+**Severity:** Moderate (cost + abuse)
+**Category:** Infrastructure
+**Phase:** Launch (Phase 4)
+
+**What goes wrong:**
+No rate limiting on anonymous or free tier users. Malicious actors generate thousands of images, exhausting API quotas (OpenAI, image generation) and driving up costs.
+
+**Why it happens:**
+- "We'll add rate limiting after we have users" (too late)
+- Trusting users not to abuse system
+- Not understanding serverless invocation costs
+
+**Consequences:**
+- $5,000 OpenAI bill in first week (happened to multiple startups)
+- API keys revoked for suspicious activity
+- Service degraded for legitimate users
+
+**Prevention:**
+
+**1. Rate Limiting by IP (Anonymous Users)**
+```typescript
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, '1 h'),  // 10 requests per hour
+  analytics: true,
+});
+
+export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
+  const { success, limit, remaining } = await ratelimit.limit(ip);
+
+  if (!success) {
+    return new Response('Rate limit exceeded. Sign up for more generations.', {
+      status: 429,
+      headers: {
+        'X-RateLimit-Limit': limit.toString(),
+        'X-RateLimit-Remaining': remaining.toString(),
+      }
+    });
+  }
+
+  // Process request
+}
+```
+
+**2. Tiered Rate Limits**
+```typescript
+const limits = {
+  anonymous: { requests: 5, window: '1 h' },
+  free: { requests: 50, window: '1 d' },
+  pro: { requests: 500, window: '1 d' },
+  enterprise: { requests: 10000, window: '1 d' },
+};
+
+async function getRateLimit(userId?: string) {
+  if (!userId) return limits.anonymous;
+
+  const user = await db.user.findUnique({ where: { id: userId } });
+  return limits[user.tier];
+}
+```
+
+**3. Cost-Based Rate Limiting**
+```typescript
+// Track API costs per user
+await db.usage.create({
+  data: {
+    userId,
+    action: 'generate_image',
+    cost: 0.02,  // OpenAI API cost per generation
+    createdAt: new Date()
+  }
+});
+
+// Check monthly spend
+const monthlySpend = await db.usage.aggregate({
+  where: {
+    userId,
+    createdAt: { gte: startOfMonth(new Date()) }
+  },
+  _sum: { cost: true }
+});
+
+if (monthlySpend._sum.cost > user.monthlyLimit) {
+  throw new Error('Monthly limit reached. Upgrade to continue.');
+}
+```
+
+**4. Upstash Redis Free Tier**
+- 10,000 requests/day free
+- Perfect for rate limiting small apps
+- Upgrade to $0.2 per 100,000 requests when scaling
+
+**Sources:**
+- [How to Implement Rate Limiting in Next.js](https://peerlist.io/blog/engineering/how-to-implement-rate-limiting-in-nextjs)
+- [4 Best Rate Limiting Solutions for Next.js Apps](https://dev.to/ethanleetech/4-best-rate-limiting-solutions-for-nextjs-apps-2024-3ljj)
+- [The Complete Rate Limiting Handbook](https://saascustomdomains.com/blog/posts/the-complete-rate-limiting-handbook-prevent-abuse-and-optimize-performance)
+
+---
+
+## INTEGRATION-SPECIFIC PITFALLS
+
+### P11: Losing Anonymous User Data on Authentication
+
+**Severity:** Moderate (UX)
+**Category:** Integration
+**Phase:** Auth + data migration (Phase 1-2)
+
+**What goes wrong:**
+User generates 5 designs anonymously, signs up, and all their work disappears because anonymous session data wasn't migrated to authenticated account.
+
+**Why it happens:**
+- No temporary storage for anonymous user data
+- No migration strategy from anonymous → authenticated
+- localStorage data not transferred to database on signup
+
+**Consequences:**
+- User frustration ("Where did my designs go?")
+- Reduced conversion (users don't sign up if they lose work)
+
+**Prevention:**
+
+**1. Anonymous Session ID in LocalStorage**
+```typescript
+// utils/session.ts
+export function getOrCreateAnonymousId(): string {
+  let anonId = localStorage.getItem('anonymous_session_id');
+  if (!anonId) {
+    anonId = crypto.randomUUID();
+    localStorage.setItem('anonymous_session_id', anonId);
+  }
+  return anonId;
+}
+```
+
+**2. Store Anonymous Data with Session ID**
+```typescript
+// API: Create post anonymously
+export async function POST(req: Request) {
+  const { imageUrl, anonymousId } = await req.json();
+
+  await db.post.create({
+    data: {
+      imageUrl,
+      anonymousSessionId: anonymousId,  // NOT userId (null)
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)  // 7 days
+    }
+  });
+}
+```
+
+**3. Migration on Signup**
+```typescript
+// After successful signup
+export async function migrateAnonymousData(userId: string, anonymousId: string) {
+  // Move anonymous posts to user account
+  await db.post.updateMany({
+    where: { anonymousSessionId: anonymousId },
+    data: {
+      userId,
+      anonymousSessionId: null,
+      expiresAt: null  // Remove expiration
+    }
+  });
+
+  console.log(`Migrated anonymous data for session ${anonymousId} to user ${userId}`);
+}
+
+// In signup flow
+const user = await createUser({ email, password });
+const anonId = req.headers.get('x-anonymous-id');  // From client
+if (anonId) await migrateAnonymousData(user.id, anonId);
+```
+
+**4. Prompt User to Save Work**
+```typescript
+// UI: Show prompt after generating 3+ designs
+if (anonymousGenerationCount >= 3) {
+  showModal({
+    title: 'Save your designs?',
+    message: 'Sign up to keep your work forever and unlock premium features.',
+    cta: 'Sign Up',
+    onSignup: async () => {
+      // Pass anonymous ID to signup flow
+      router.push(`/signup?anonId=${getOrCreateAnonymousId()}`);
+    }
+  });
+}
+```
+
+**Detection:**
+- Track conversion funnel: anonymous usage → signup → retained data
+- Survey users: "Did you find your previous designs after signing up?"
+
+**Sources:**
+- [Automatic Session Linking/Identity Stitching](https://github.com/umami-software/umami/issues/3820)
+
+---
+
+### P12: Gradual Rollout Breaking for Existing Users
+
+**Severity:** Moderate (UX)
+**Category:** Integration
+**Phase:** Feature rollout (Phase 4)
+
+**What goes wrong:**
+Using feature flags for gradual authentication rollout causes inconsistent experience: user sees "Sign Up" button on one visit, doesn't see it on next visit (fell out of rollout percentage).
+
+**Why it happens:**
+- Feature flag percentage-based rollout without user ID stickiness
+- Anonymous users don't have stable identifier for consistent flagging
+
+**Consequences:**
+- User confusion ("I saw a premium feature earlier, now it's gone")
+- Can't reproduce bugs (feature state changes between requests)
+- A/B test results polluted (users see both variants)
+
+**Prevention:**
+
+**1. User ID-Based Stickiness**
+```typescript
+import { unstable_flag as flag } from '@vercel/flags/next';
+
+export const authFeatureFlag = flag({
+  key: 'auth-rollout',
+  decide: async () => {
+    const session = await getSession();
+    const userId = session?.userId ?? getOrCreateAnonymousId();
+
+    // Hash user ID to percentage (0-100)
+    const hash = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(userId)
+    );
+    const percentage = new DataView(hash).getUint32(0) % 100;
+
+    // Enable for first 20% of users (by hashed user ID)
+    return percentage < 20;
+  }
+});
+```
+
+**2. Gradual Rollout Schedule**
+```typescript
+// Phase 1: Internal team (day 1)
+if (user.email.endsWith('@company.com')) return true;
+
+// Phase 2: 5% of users (day 3)
+if (hash < 5) return true;
+
+// Phase 3: 20% of users (day 5)
+if (hash < 20) return true;
+
+// Phase 4: 50% of users (day 7)
+if (hash < 50) return true;
+
+// Phase 5: 100% of users (day 10)
+return true;
+```
+
+**3. Feature Flag with Database Override**
+```typescript
+// Allow manually enabling feature for specific users
+const override = await db.featureFlag.findUnique({
+  where: { userId_feature: { userId, feature: 'auth-rollout' } }
+});
+
+if (override?.enabled) return true;
+
+// Fall back to percentage rollout
+return hashBasedRollout(userId);
+```
+
+**Sources:**
+- [Feature flag use cases: progressive or gradual rollouts](https://www.getunleash.io/feature-flag-use-cases-progressive-or-gradual-rollouts)
+- [11 principles for building and scaling feature flag systems](https://docs.getunleash.io/guides/feature-flag-best-practices)
+- [Feature Flag Best Practices](https://frontegg.com/blog/feature-flag-best-practices)
+
+---
+
+### P13: Stripe Test Mode vs Live Mode Confusion
+
+**Severity:** Moderate (launch blocker)
+**Category:** Payments
+**Phase:** Stripe testing (Phase 3)
+
+**What goes wrong:**
+Webhooks work in test mode but not in production. Realized too late that test webhook endpoint ≠ live webhook endpoint, and live mode requires separate configuration.
+
+**Why it happens:**
+- Assuming test mode configuration carries over to live mode
+- Not reading Stripe's test-to-live migration checklist
+- Using same webhook endpoint for both modes
+
+**Consequences:**
+- Launch day: payments succeed but webhooks fail
+- Users pay but don't get access
+- Manual reconciliation needed
+
+**Prevention:**
+
+**1. Separate Webhook Endpoints (Recommended)**
+```typescript
+// Development: Test mode webhook
+POST https://example.com/api/webhooks/stripe-test
+// Uses STRIPE_WEBHOOK_SECRET_TEST
+
+// Production: Live mode webhook
+POST https://example.com/api/webhooks/stripe
+// Uses STRIPE_WEBHOOK_SECRET_LIVE
+```
+
+**2. Single Endpoint with Mode Detection**
+```typescript
+export async function POST(req: Request) {
+  const body = await req.text();
+  const signature = req.headers.get('stripe-signature') as string;
+
+  // Try live mode first
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET_LIVE!
+    );
+  } catch {
+    // Fall back to test mode
+    try {
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET_TEST!
+      );
+    } catch (err) {
+      return new Response('Invalid signature', { status: 400 });
+    }
+  }
+
+  // Check livemode property
+  if (event.livemode) {
+    await processLiveEvent(event);
+  } else {
+    await processTestEvent(event);
+  }
+}
+```
+
+**3. Pre-Launch Checklist**
+- [ ] Test mode products created (e.g., "Pro Plan - Test")
+- [ ] Live mode products created (e.g., "Pro Plan")
+- [ ] Test webhook endpoint registered in Stripe Dashboard (Test mode)
+- [ ] Live webhook endpoint registered in Stripe Dashboard (Live mode)
+- [ ] Test webhook secret in `.env.local`
+- [ ] Live webhook secret in production environment variables
+- [ ] Test payment with card `4242 4242 4242 4242` (test mode)
+- [ ] Live payment with real card (live mode) in staging environment
+- [ ] Webhook logs show successful delivery in both modes
+
+**4. Stripe Go-Live Checklist (Official)**
+- Activate your Stripe account (provide business details)
+- Request higher rate limits if needed
+- Switch API keys from test to live
+- Create live mode products/prices
+- Register live mode webhook endpoints
+- Update environment variables
+- Test with real payment method in staging
+- Monitor webhook logs after launch
+
+**Sources:**
+- [Handle different modes | Stripe Documentation](https://docs.stripe.com/stripe-apps/handling-modes)
+- [Go-live checklist | Stripe Documentation](https://docs.stripe.com/get-started/checklist/go-live)
+- [Stripe Webhooks, Live Mode](https://docs.blackthorn.io/docs/payments-deploy-production-stripe-webhooks-live-mode)
+
+---
+
+## MINOR PITFALLS (Annoyances)
+
+### P14: Email Verification Blocking User Onboarding
+
+**Severity:** Minor (UX friction)
+**Category:** Authentication
+**Phase:** Auth implementation (Phase 1)
+
+**What goes wrong:**
+Requiring email verification before allowing app access creates unnecessary friction. User signs up, excited to use app, gets redirected to "Check your email" page, never returns.
+
+**Consequences:**
+- 30-50% signup abandonment
+- Email goes to spam folder
+- User loses interest waiting for verification
+
+**Prevention:**
+1. **Progressive verification**: Allow app access immediately, prompt verification later
+2. **Verify on first action**: Send verification email but don't block access
+3. **Clear value**: "Verify email to save your designs permanently"
+
+---
+
+### P15: Database Migration Rollback Failure
+
+**Severity:** Minor (downtime)
+**Category:** Database
+**Phase:** Schema changes (Phase 2+)
+
+**What goes wrong:**
+Prisma migration breaks production database schema. Rollback fails because migration already partially applied.
+
+**Prevention:**
+1. **Test migrations in staging** with production data snapshot
+2. **Backup before migrations**: `pg_dump` before running migrations
+3. **Idempotent migrations**: Use `IF NOT EXISTS` clauses
+4. **Shadow database**: Prisma's shadow database for migration validation
+
+---
+
+## RESEARCH GAPS & PHASE-SPECIFIC FLAGS
+
+### Areas Requiring Deeper Research During Implementation
+
+| Phase | Topic | Why Needs Research | Priority |
+|-------|-------|-------------------|----------|
+| Phase 1 | Auth.js v5 vs Better Auth API comparison | Rapid evolution, need current API docs | HIGH |
+| Phase 2 | Neon vs Supabase serverless database pricing | Pricing models change frequently | MEDIUM |
+| Phase 3 | Stripe Checkout vs Payment Links | Feature set differs, need use-case match | MEDIUM |
+| Phase 4 | Upstash Redis pricing at scale | Free tier limits need verification | LOW |
+
+### Topics with LOW Confidence (Needs Verification)
+
+1. **Anonymous session migration patterns** - Limited authoritative sources found (only GitHub issue)
+2. **Better Auth production stability** - New library (2025), limited production usage data
+3. **Next.js 15/16 App Router caching behavior with auth** - Behavior changes between versions
+
+---
+
+## PHASE RECOMMENDATIONS
+
+### Phase 1: Authentication (High Risk)
+**Critical pitfalls to address:**
+- P1: Breaking anonymous flow (MUST preserve)
+- P5: OAuth approval delays (start 3 weeks early)
+- P6: Cache poisoning (test user isolation)
+
+**Research needed:**
+- Auth.js v5 vs Better Auth (LOW confidence on API stability)
+- Session migration strategy (LOW confidence, sparse documentation)
+
+---
+
+### Phase 2: Database (High Risk)
+**Critical pitfalls to address:**
+- P2: Connection pooling failure (test edge runtime early)
+- P4: Image storage in database (use S3 from day 1)
+- P6: Cache key scoping (implement user-scoped cache)
+
+**Research needed:**
+- Neon serverless vs Supabase pricing at scale
+- Prisma Accelerate necessity for edge runtime
+
+---
+
+### Phase 3: Payments (Highest Risk)
+**Critical pitfalls to address:**
+- P3: Webhook race conditions (implement idempotency first)
+- P7: Webhook signature verification (test production webhook before launch)
+- P13: Test vs live mode confusion (separate endpoints)
+
+**Research needed:**
+- Stripe Checkout vs Payment Links for SaaS subscriptions
+- Webhook idempotency implementation patterns (multiple patterns found, need to choose)
+
+---
+
+### Phase 4: Launch (Moderate Risk)
+**Critical pitfalls to address:**
+- P10: Free tier abuse (rate limiting required)
+- P8: Image optimization costs (evaluate alternatives)
+- P12: Gradual rollout consistency (user-based feature flags)
+
+---
+
+## CONFIDENCE ASSESSMENT
+
+| Pitfall Category | Research Confidence | Source Quality | Verification Status |
+|------------------|---------------------|----------------|---------------------|
+| Stripe webhooks | HIGH | Official docs + recent blog posts | Verified with Stripe docs |
+| Database connection pooling | HIGH | Official Prisma/Vercel docs | Verified with Prisma docs |
+| OAuth approval | MEDIUM-HIGH | Community posts (2025) | Verified with Google/Facebook docs |
+| Session migration | LOW | Single GitHub issue | Needs official documentation |
+| Auth library comparison | MEDIUM | Multiple comparison posts (2025) | Cross-referenced 3+ sources |
+| Image storage costs | HIGH | Official AWS/Vercel pricing | Verified with pricing pages |
+| Rate limiting | HIGH | Library docs + tutorials | Verified with Upstash docs |
+
+---
+
+## SOURCES
+
+### Authentication
+- [Top 5 authentication solutions for secure Next.js apps in 2026](https://workos.com/blog/top-authentication-solutions-nextjs-2026)
+- [NextAuth.js: Secure Authentication for Next.js Apps](https://strapi.io/blog/nextauth-js-secure-authentication-next-js-guide)
+- [Next.js Authentication Guide](https://nextjs.org/docs/pages/building-your-application/authentication)
+- [NextAuth.js vs Clerk vs Auth.js — Which Is Best for Your Next.js App in 2025?](https://chhimpashubham.medium.com/nextauth-js-vs-clerk-vs-auth-js-which-is-best-for-your-next-js-app-in-2025-fc715c2ccbfd)
+- [Clerk vs Supabase Auth vs NextAuth.js: The Production Reality](https://medium.com/better-dev-nextjs-react/clerk-vs-supabase-auth-vs-nextauth-js-the-production-reality-nobody-tells-you-a4b8f0993e1b)
+- [BetterAuth vs NextAuth: Choose the Right Auth Library for Your SaaS](https://www.devtoolsacademy.com/blog/betterauth-vs-nextauth/)
+
+### OAuth Provider Approval
+- [How to Pass Google OAuth Verification (My Full 2025 Guide)](https://medium.com/@info.brightconstruct/the-real-oauth-journey-getting-a-google-workspace-add-on-verified-fc31bc4c9858)
+- [Google OAuth Developer Reviews Explained](https://www.cloudsponge.com/blog/google-oauth-reviews/)
+- [Navigating the Facebook App Review Process](https://dancerscode.com/posts/navigating-the-facebook-app-review-process/)
+- [Comply with OAuth 2.0 policies](https://developers.google.com/identity/protocols/oauth2/production-readiness/policy-compliance)
+
+### Database
+- [Next.js App Router: common mistakes and how to fix them](https://upsun.com/blog/avoid-common-mistakes-with-next-js-app-router/)
+- [Database access on the Edge with Next.js, Vercel & Prisma Accelerate](https://www.prisma.io/blog/database-access-on-the-edge-8F0t1s1BqOJE)
+- [The Problem with Using Databases on the Edge/Serverless](https://dev.to/reggi/the-problem-with-using-databases-on-the-edge-serverless-50fp)
+- [Edge Runtime vs Node.js Runtime: When Your Serverless Functions Mysteriously Fail](https://dev.to/pockit_tools/edge-runtime-vs-nodejs-runtime-when-your-serverless-functions-mysteriously-fail-14a)
+- [Connection Pooling with Vercel Functions](https://vercel.com/guides/connection-pooling-with-serverless-functions)
+
+### Image Storage
+- [Storing Images: Database vs Filesystem – Pros, Cons & Best Practices](https://www.codegenes.net/blog/storing-images-in-a-database-versus-a-filesystem/)
+- [AWS S3 Storage Classes: 2026 Cost Optimization Roadmap](https://costimizer.ai/blogs/aws-s3-storage)
+- [Cloud Storage Pricing Comparison: AWS S3, GCP, Azure, and B2](https://www.backblaze.com/cloud-storage/pricing)
+- [The Cost Structure of Using Nextjs Image](https://indie-starter.dev/blog/the-cost-of-using-nextjs-image)
+- [Cutting Vercel Costs by 80%](https://www.howdygo.com/blog/cutting-howdygos-vercel-costs-by-80-without-compromising-ux-or-dx)
+
+### Stripe Payments
+- [Stripe Webhooks: Solving Race Conditions and Building a Robust Credit Management System](https://www.pedroalonso.net/blog/stripe-webhooks-solving-race-conditions/)
+- [The Race Condition You're Probably Shipping Right Now With Stripe Webhooks](https://dev.to/belazy/the-race-condition-youre-probably-shipping-right-now-with-stripe-webhooks-mj4)
+- [Building Reliable Stripe Subscriptions: Webhook Idempotency and Optimistic Locking](https://dev.to/aniefon_umanah_ac5f21311c/building-reliable-stripe-subscriptions-in-nestjs-webhook-idempotency-and-optimistic-locking-3o91)
+- [Best practices I wish we knew when integrating Stripe webhooks](https://www.stigg.io/blog-posts/best-practices-i-wish-we-knew-when-integrating-stripe-webhooks)
+- [Stripe Checkout and Webhook in a Next.js 15 (2025)](https://medium.com/@gragson.john/stripe-checkout-and-webhook-in-a-next-js-15-2025-925d7529855e)
+- [Debugging Stripe Webhook Signature Verification Errors in Production](https://dev.to/nerdincode/debugging-stripe-webhook-signature-verification-errors-in-production-1h7c)
+- [How to Handle Stripe Webhooks in Next.js (The App Router Way)](https://dev.to/thekarlesi/how-to-handle-stripe-and-paystack-webhooks-in-nextjs-the-app-router-way-5bgi)
+- [Handle different modes | Stripe Documentation](https://docs.stripe.com/stripe-apps/handling-modes)
+- [Go-live checklist | Stripe Documentation](https://docs.stripe.com/get-started/checklist/go-live)
+
+### Rate Limiting
+- [How to Implement Rate Limiting in Next.js](https://peerlist.io/blog/engineering/how-to-implement-rate-limiting-in-nextjs)
+- [4 Best Rate Limiting Solutions for Next.js Apps](https://dev.to/ethanleetech/4-best-rate-limiting-solutions-for-nextjs-apps-2024-3ljj)
+- [The Complete Rate Limiting Handbook](https://saascustomdomains.com/blog/posts/the-complete-rate-limiting-handbook-prevent-abuse-and-optimize-performance)
+
+### Feature Flags
+- [Feature flag use cases: progressive or gradual rollouts](https://www.getunleash.io/feature-flag-use-cases-progressive-or-gradual-rollouts)
+- [11 principles for building and scaling feature flag systems](https://docs.getunleash.io/guides/feature-flag-best-practices)
+- [Feature Flag Best Practices](https://frontegg.com/blog/feature-flag-best-practices)
+
+### Session Migration
+- [Automatic Session Linking/Identity Stitching](https://github.com/umami-software/umami/issues/3820) (LOW confidence - GitHub issue only)

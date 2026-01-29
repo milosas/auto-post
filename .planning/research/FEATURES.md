@@ -1,496 +1,404 @@
-# Feature Landscape: AI Social Media Post Generator
+# Features Research: v2.0 User System + Payments
 
-**Domain:** Social media content generation for small service businesses
-**Target Users:** Lithuanian beauty specialists, trainers, physiotherapists, massage therapists
-**Researched:** 2026-01-25
-**Confidence:** HIGH
-
-## Executive Summary
-
-The AI social media post generator market in 2026 is mature and crowded. Success depends on being **dramatically simpler** than competitors, not more feature-rich. Users expect AI content generation and basic customization as table stakes, but most tools suffer from feature bloat that slows down workflows.
-
-Your competitive advantage: **Speed and focus**. Generate a Lithuanian post in under 60 seconds by ruthlessly cutting everything that doesn't serve that goal.
+**Project:** Social Post Generator for Lithuanian Service Providers
+**Research Date:** 2026-01-29
+**Focus:** Authentication, Post History, Payment Systems for Content Generation SaaS
+**Confidence:** MEDIUM (based on ecosystem research, competitor analysis, official Stripe docs)
 
 ---
 
-## Table Stakes Features
+## Authentication Features
 
-Features users expect. Missing these = product feels incomplete or broken.
+### Table Stakes (Must-Have for Credibility)
 
-| Feature | Why Expected | Complexity | Implementation Notes |
-|---------|--------------|------------|---------------------|
-| **AI text generation** | 79% of social media managers use AI daily; it's the baseline expectation in 2026 | Medium | Must support Lithuanian language well - this is non-negotiable for your target market |
-| **Tone/style control** | Users need casual vs professional options; platform-specific tone is expected | Low | 3-5 preset tones (friendly, professional, promotional, inspirational, casual) sufficient |
-| **Emoji integration** | Posts with emojis receive higher engagement; users expect automatic addition | Low | Auto-suggest emojis based on content, with toggle to enable/disable |
-| **Platform optimization** | Content must be formatted for Instagram/Facebook specifically | Medium | Character limits, formatting differences between platforms |
-| **Copy to clipboard** | Essential for your "copy and paste" workflow; users need one-click copy | Low | Single "Copy" button - this is critical for 60-second goal |
-| **Image support** | 41% of Facebook posts use AI visuals; users expect image+text together | Medium | Both upload AND generation options needed (see details below) |
-| **Mobile-friendly interface** | Service providers work on phones; desktop-only is a dealbreaker | Medium | Responsive design essential - many users will access on mobile |
-| **Post length control** | Users need short captions vs long storytelling options | Low | Presets: Short (1-2 sentences), Medium (3-5), Long (paragraph+) |
+| Feature | Complexity | Notes | Rationale |
+|---------|-----------|-------|-----------|
+| **Social login (Google, Facebook)** | Low-Medium | Use Stripe Identity or Auth0 for implementation | 75% of users abandon without frictionless registration. Miro only asks for email + allows Google/Microsoft/Slack login |
+| **Email/password authentication** | Medium | Requires password reset flow, email verification | Fallback for users who don't trust social login. Security baseline requirement |
+| **Password reset via email** | Low | Magic link or temporary password | Standard expectation - users will immediately test this if they forget password |
+| **Email verification** | Low | Prevent spam accounts, one-time link | Table stakes for any serious SaaS - prevents fake accounts |
+| **Remember me / session persistence** | Low | 7-30 day sessions common | Users expect to stay logged in on trusted devices |
+| **Logout functionality** | Low | Clear session, redirect to login | Basic security requirement |
 
-### Critical Implementation Details
+### Differentiators (Nice-to-Have, Sets Product Apart)
 
-**AI Text Generation - Lithuanian:**
-- Sources show 19+ languages supported by major tools, but quality varies
-- Lithuanian is less common - verify your AI provider's Lithuanian quality thoroughly
-- Service providers need natural, conversational Lithuanian, not formal/stiff language
-- **Pitfall:** Machine-translated Lithuanian will feel wrong to native speakers
+| Feature | Complexity | Notes | Value Proposition |
+|---------|-----------|-------|-------------------|
+| **Passwordless login (magic link)** | Medium | Email-only authentication, no password storage | Modern, secure alternative - reduces password fatigue. Used by Notion, Slack |
+| **Social login profile import** | Low | Pull name/avatar from Google/FB on first login | Personalized dashboard immediately - better first impression |
+| **Account deletion** | Medium | GDPR compliance, cascade delete all user data | Legal requirement for EU/Lithuanian users, builds trust |
+| **Multi-device session management** | Medium | See all active sessions, remote logout | Security-conscious users appreciate visibility |
 
-**Image Support - Dual Approach:**
-- Research shows users want BOTH upload and generation options
-- Upload: "More personal touch" for brand authenticity
-- Generation: Speed and convenience when no photo available
-- **Recommendation:** Default to upload (fits service provider use case - they have treatment photos), generation as fallback
+### Anti-Features (Deliberately NOT Building)
 
----
-
-## Differentiators
-
-Features that set your product apart. Not expected, but create competitive advantage.
-
-| Feature | Value Proposition | Complexity | Strategic Rationale |
-|---------|-------------------|------------|---------------------|
-| **Industry-specific templates** | Beauty/wellness content has specific patterns; templates save thinking time | Low-Medium | Pre-written starting points: "Before/After", "Client Testimonial", "Treatment Spotlight", "Tip of the Day" |
-| **Lithuanian-first design** | Global tools treat Lithuanian as afterthought; you make it primary | Low | All UI, examples, templates in Lithuanian - signals "built for you" |
-| **60-second guarantee** | Explicit speed promise vs competitors' feature bloat | Low | Market positioning; forces ruthless simplicity in design |
-| **No account required** | Reduces friction; can use immediately without signup | Low | Huge differentiator vs SaaS competitors requiring login |
-| **Industry selector** | Automatically adjusts tone/vocabulary for beauty vs fitness vs therapy | Medium | "Beauty specialist" uses different language than "physiotherapist" |
-| **Local market awareness** | Understands Lithuanian service market norms (pricing hints, seasonal patterns) | Medium | References to Lithuanian holidays, seasonal services (summer prep, winter skincare) |
-
-### Strategic Differentiator Analysis
-
-**Why Industry-Specific Templates Win:**
-- Research shows themed content ("Makeover Monday", "Wellness Wednesday") performs well
-- Service providers struggle with "what to post about" - templates solve this
-- Complexity: LOW - just pre-written prompts with blanks to fill
-- **Example:** "Share your favorite [season] treatment and why clients love it"
-
-**Why "No Account Required" is Powerful:**
-- Your target users are time-poor small business owners
-- Competitors (Buffer, Canva, SocialBee) all require accounts
-- You can start generating immediately - massive friction reduction
-- Trade-off: Can't save history or schedule posts, but that's fine for your use case
-
-**Why Lithuanian-First Matters:**
-- Major tools (Predis.ai, Buffer, SocialPilot) support Lithuanian but design for English
-- Examples, templates, UI all assume English-speaking user
-- Being Lithuanian-native signals: "This tool understands my market"
-- Small feature, huge psychological impact
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Two-factor authentication (2FA)** | Overkill for content generation tool. Adds friction without meaningful security benefit for this use case | Focus on secure social login and magic links instead |
+| **Enterprise SSO (SAML, LDAP)** | Target audience is small Lithuanian businesses, not enterprises. 99% won't use it | Wait for explicit B2B customer demand |
+| **Passwordless SMS login** | Expensive (SMS costs), unreliable in some regions, introduces phone number dependency | Use email magic links for passwordless experience |
+| **Multiple account types/roles** | Adds complexity without value for single-user tool | Keep it simple - one user = one account |
+| **Username system** | Unnecessary - email serves as unique identifier | Use email as primary identifier |
 
 ---
 
-## Anti-Features
+## History/Dashboard Features
 
-Features to explicitly NOT build. Common in competitor tools but wrong for your product.
+### Table Stakes (Must-Have for Credibility)
 
-| Anti-Feature | Why Avoid | What to Do Instead | Evidence |
-|--------------|-----------|-------------------|----------|
-| **Post scheduling** | Adds complexity; not needed for copy-paste workflow; users can schedule natively in Facebook | Simple copy button | Scheduling is "table stakes" for social media management tools, but you're a content GENERATOR, not a manager. Buffer owns scheduling; don't compete. |
-| **Multi-platform publishing** | Requires OAuth integrations, API maintenance, permission scopes - huge complexity | Copy and paste works everywhere | Direct publishing to platforms adds minimal value vs massive engineering cost |
-| **Analytics dashboard** | Outside your core value; Facebook/Instagram provide native analytics | Focus on content quality | Users already have analytics in native platforms; duplicating adds bloat |
-| **Team collaboration features** | Your users are solo practitioners or tiny teams (1-2 people) | Single-user simplicity | Team features (approval workflows, multi-user access) add complexity your market doesn't need |
-| **Content calendar** | Implies planning weeks ahead; your users work day-to-day | Generate-and-post workflow | Service providers post reactively (client result, daily tip), not strategic campaigns |
-| **Hashtag research tools** | Hashtags are declining in importance; Instagram now limits to 5, prioritizes content quality | Auto-suggest 3-5 relevant hashtags | Research shows "hashtag stuffing" is dead in 2026; Instagram limits to 5; quality > quantity |
-| **A/B testing** | Too sophisticated for target market; requires analytics integration | Single best-practice output | Small service providers don't have volume for meaningful A/B tests |
-| **Brand kit (fonts, colors, logos)** | Adds design complexity; most posts are photo + text, not designed graphics | Focus on text quality | Competitor feature (Canva, SocialBee) but wrong for your use case - users post treatment photos, not branded graphics |
-| **Content recycling/resharing** | Assumes large content library; your users create fresh content each time | Fresh generation every time | Tools like SocialPilot offer "evergreen content recycling" but small businesses don't think this way |
-| **Advanced tone controls (10+ options)** | Decision paralysis; too many choices slow workflow | 3-5 clear preset tones | Balance: enough options to feel customizable, few enough to decide quickly |
+| Feature | Complexity | Notes | Rationale |
+|---------|-----------|-------|-----------|
+| **Post history list view** | Low | Show all generated posts, newest first | Core value prop - users expect to retrieve past work. Jasper saves all generated content history |
+| **Post thumbnail preview** | Medium | Show text snippet + image thumbnail | Users need visual scanning - text-only lists are hard to navigate |
+| **Post creation date/timestamp** | Low | Show "Created 2 hours ago" or exact date | Temporal context essential for organizing work |
+| **Individual post view** | Low | Click to see full post text + full image | Basic drill-down interaction |
+| **Regenerate from history** | Medium | Load saved post config, regenerate new version | Users want to iterate on past successful posts |
+| **Copy post text** | Low | One-click copy (reuse existing functionality) | Already built in v1.0, must carry forward |
+| **Usage counter/quota display** | Low | "You've used 2/3 free generations today" | Critical for freemium - users need visibility into limits |
 
-### Critical Anti-Feature Rationale
+### Differentiators (Nice-to-Have, Sets Product Apart)
 
-**Why No Scheduling:**
-- Research confirms scheduling is "table stakes" for social media MANAGEMENT tools
-- But you're a GENERATOR, not a manager - different category
-- Facebook/Instagram have native scheduling (free)
-- Scheduling adds: OAuth complexity, API maintenance, platform policy changes, token management
-- Benefit: Minimal (users can schedule in platform in 10 seconds)
-- **Verdict:** Massive complexity for negligible value
+| Feature | Complexity | Notes | Value Proposition |
+|---------|-----------|-------|-------------------|
+| **Filter by industry** | Low | Dropdown filter using existing 20 Lithuanian categories | Users generate posts for specific clients - quickly find "all restaurant posts" |
+| **Filter by date range** | Medium | "Last 7 days", "This month", custom range | Power users generating 50+ posts/month need temporal organization |
+| **Search posts by keyword** | Medium | Search post text content | Find that "summer sale" post from 3 weeks ago |
+| **Download post as image** | Medium | Render preview as PNG/JPG for download | Some users want to save locally, not just copy text |
+| **Post favorites/bookmarks** | Low | Star best posts for quick access | Users have "golden" posts they reuse - make retrieval instant |
+| **Batch actions** | High | Select multiple posts, delete/export in bulk | Power user feature for managing 100+ posts |
+| **Post templates from history** | Medium | Save best posts as reusable templates | "This restaurant opening post worked great - use it as template for next client" |
+| **Export history (CSV/JSON)** | Low | Download all posts for backup/analysis | Users want data portability, builds trust |
 
-**Why No Hashtag Research:**
-- Instagram limits hashtags to 5 (down from 30) as of 2026
-- Algorithms now prioritize content quality over hashtag volume
-- "Hashtag stuffing" era is over
-- Auto-suggesting 3-5 relevant hashtags is sufficient
-- Research tools add complexity without ROI
+### Anti-Features (Deliberately NOT Building)
 
-**Why No Brand Kit:**
-- Service providers post real photos (before/after, treatment rooms, client results)
-- Not creating designed graphics that need brand colors/fonts
-- Canva owns the "design your post" space - don't compete
-- Your value: TEXT quality in Lithuanian, not visual design
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Collaborative workspaces/sharing** | Target is individual service providers, not teams. Adds massive complexity (permissions, roles, notifications) | Wait for B2B customer validation |
+| **Post analytics/performance tracking** | Requires social media integration, tracking pixels, etc. Scope creep - we generate content, not analytics | Focus on generation quality, not post-publication metrics |
+| **Post scheduling/publishing** | Becomes a social media management tool (Buffer/Hootsuite competitor). Different product category | Users already have tools for this - stay focused |
+| **Version history per post** | Over-engineering for content generation. Users regenerate instead of editing versions | Provide regenerate button, not version control |
+| **Folders/nested organization** | Adds UI complexity. Most users generate <50 posts total - flat list with filters is sufficient | Use filters and search instead |
+| **Post comments/notes** | Collaboration feature for non-existent use case | Keep it simple - posts are atomic items |
 
 ---
 
-## Feature Dependencies
+## Payment Features
 
-Understanding what must be built first and what depends on other features.
+### Table Stakes (Must-Have for Credibility)
+
+| Feature | Complexity | Notes | Rationale |
+|---------|-----------|-------|-----------|
+| **Free tier with hard limits** | Low | 3 generations/day, resets at midnight | Industry standard - ChatGPT free tier has limits, Canva offers 50 credits/day. Drives conversion |
+| **Credit card payment (Stripe)** | Medium | Stripe Checkout for PCI compliance | 80%+ of SaaS uses Stripe. Don't handle card data directly |
+| **Subscription billing** | Medium | Monthly recurring via Stripe Billing | Predictable revenue for business, predictable cost for users |
+| **Payment method update** | Low | Stripe Customer Portal for self-service | Required for failed payments - users must update expired cards |
+| **Subscription cancellation** | Low | Self-service via Stripe Customer Portal | Legal requirement, builds trust. Stripe-hosted portal handles this |
+| **Usage quota reset** | Low | Daily reset at midnight (local time) | Clear, predictable limits - users plan their work around resets |
+| **Payment failure handling** | Medium | Stripe Smart Retries + email notifications | Involuntary churn is real - automated retries recover revenue |
+| **Invoice generation** | Low | Stripe auto-generates invoices | B2B users need invoices for accounting. Stripe handles automatically |
+
+### Differentiators (Nice-to-Have, Sets Product Apart)
+
+| Feature | Complexity | Notes | Value Proposition |
+|---------|-----------|-------|-------------------|
+| **Hybrid model (base subscription + credits)** | High | €9/month base + 50 credits, buy more credits as needed | 21% higher growth than pure models. HubSpot uses this (500-5000 credits per tier) |
+| **Credit rollover** | Medium | Unused credits carry to next month (with cap) | Reduces "use it or lose it" anxiety, increases perceived value |
+| **One-time credit purchase** | Medium | Buy 20 credits for €5 without subscription | For occasional users who don't want monthly commitment |
+| **Usage alerts** | Low | Email when 80% quota used, when quota exhausted | Users hate hitting limits unexpectedly - proactive notifications build goodwill |
+| **Transparent pricing table** | Low | Stripe embedded pricing table on homepage | 3x faster conversion than custom pricing pages |
+| **Free trial (7 days unlimited)** | Medium | Stripe supports trials without payment info | Users can sign up and test without friction. Risk: abuse by serial trial users |
+| **Annual billing discount** | Low | 20% off if paid yearly | Improves cash flow, reduces churn |
+| **Lithuanian tax compliance (VAT)** | Medium | Stripe Tax handles automatic calculation | Legal requirement for Lithuanian business - Stripe Tax automates 135+ countries |
+| **Refund self-service** | High | Automated refund for first-time requests | Reduces support burden, builds trust. Box-standard for modern SaaS |
+
+### Anti-Features (Deliberately NOT Building)
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Tiered pricing with feature gates** | Too complex for simple tool. Creates support burden ("Why can't I use X on Basic plan?") | Single paid tier with clear quota differences |
+| **Per-seat pricing** | Individual tool, not team tool. Doesn't align with use case | Per-user accounts, flat subscription |
+| **Metered billing by API usage** | Developer-focused pricing. Target users are marketers/service providers, not engineers | Flat daily limits or credit bundles |
+| **Free forever unlimited plan** | Unsustainable - AI generation has real costs (DALL-E, OpenAI). Race to bottom | Generous free tier, clear upgrade path |
+| **Cryptocurrency/alternative payments** | Niche demand, adds complexity, volatile pricing | Credit cards + SEPA for EU coverage |
+| **Lifetime deals** | Cash now, support burden forever. Kills MRR growth | Focus on sustainable recurring revenue |
+| **Enterprise contracts/custom pricing** | No sales team, target audience is SMBs, not enterprises | Self-service pricing only |
+
+---
+
+## Feature Dependencies on Existing v1.0 Features
+
+Understanding how v2.0 integrates with built features:
+
+| Existing v1.0 Feature | v2.0 Integration | Dependency Type |
+|-----------------------|------------------|-----------------|
+| **Industry selection (20 categories)** | Save with post history, enable filtering by industry | Extend |
+| **Image upload + DALL-E generation** | Store image URL/file with post, show in history thumbnail | Store |
+| **Post configuration (topic, tone, emoji, length)** | Save full config with post for regeneration | Store |
+| **Streaming text generation** | No change - same generation flow for logged-in users | Independent |
+| **One-click copy** | Reuse in history view for past posts | Reuse |
+| **Regenerate text** | Two contexts: current post (v1.0) and from history (v2.0) | Extend |
+| **Facebook/Instagram preview** | Show in history post detail view | Reuse |
+| **Mobile/desktop preview toggle** | Apply to history views | Reuse |
+| **Loading states** | Apply to history loading, payment processing | Reuse |
+
+**Critical dependency:** All v1.0 generation flows must work identically for free vs paid users. Only difference is quota enforcement.
+
+---
+
+## User Journey Mapping
+
+### Journey 1: New User → First Generation (Free Tier)
 
 ```
-CORE FOUNDATION (Must build first):
-├── AI text generation (Lithuanian)
-├── Copy to clipboard
-└── Basic UI (industry selector, image upload)
-
-TIER 1 (Depends on foundation):
-├── Tone/style presets → Requires: AI text generation
-├── Post length control → Requires: AI text generation
-├── Emoji integration → Requires: AI text generation
-└── Platform selection → Requires: AI text generation
-
-TIER 2 (Enhancement features):
-├── Industry-specific templates → Requires: Industry selector, AI generation
-├── Image generation (optional) → Requires: Basic UI, AI provider with image support
-└── Hashtag auto-suggest → Requires: AI text generation, platform selection
-
-INDEPENDENT (Can build anytime):
-├── Mobile-responsive design
-└── Lithuanian-first UI/UX
+1. Land on homepage
+   ↓
+2. Click "Start Creating" → Prompted to sign up
+   ↓
+3. Sign up via Google (3 clicks)
+   ↓ [Profile imported: name, avatar]
+4. Onboarding: "Welcome! You have 3 free generations today."
+   ↓ [Show quick demo: industry picker → topic → generate]
+5. Generate first post
+   ↓ [Success! Usage: 1/3 used today]
+6. See result + option to save/copy
+   ↓
+7. Dashboard shows "Your Posts (1)"
 ```
 
-### Build Order Recommendation
+**Aha moment:** Generated post appears + saved to history (3-5 minutes from signup)
+**Friction points:** Social login failure, unclear quota visibility
+**Success metric:** 70%+ of signups complete first generation within 10 minutes
 
-**Phase 1 - Core MVP (Week 1-2):**
-1. Industry selector dropdown (5 industries)
-2. Image upload (simple file input)
-3. AI text generation API integration (Lithuanian)
-4. Basic tone selector (3 options: Friendly, Professional, Promotional)
-5. Copy to clipboard button
-6. Character count display
+### Journey 2: Free User → Paid Conversion
 
-**Phase 2 - Table Stakes (Week 3):**
-7. Post length presets (Short/Medium/Long)
-8. Emoji toggle (on/off)
-9. Platform selector (Facebook/Instagram)
-10. Mobile-responsive layout
+```
+1. Free user hits daily limit (3/3 used)
+   ↓ [Modal: "Daily limit reached. Upgrade for unlimited?"]
+2. Click "View Plans"
+   ↓
+3. Pricing page with clear comparison:
+   - Free: 3/day
+   - Pro: Unlimited (€9/month)
+   ↓
+4. Click "Upgrade to Pro"
+   ↓
+5. Stripe Checkout (embedded)
+   ↓ [Enter card, confirm]
+6. Redirect to dashboard
+   ↓ [Celebration: "You're now Pro! Generate unlimited posts."]
+7. Continue generating immediately
+```
 
-**Phase 3 - Differentiators (Week 4+):**
-11. Industry-specific templates (3-5 per industry)
-12. Lithuanian market awareness (seasonal content suggestions)
-13. Image generation as fallback option
+**Conversion trigger:** Hitting daily limit (highest intent moment)
+**Friction points:** Pricing clarity, card entry friction, unclear benefit
+**Success metric:** 5-10% free→paid conversion within 30 days
 
----
+### Journey 3: Paid User → Retention
 
-## MVP Feature Set
+```
+1. Paid user generates 5-10 posts/week
+   ↓
+2. Receives value: saves time, clients happy
+   ↓
+3. Payment auto-renews (Stripe handles)
+   ↓ [Invoice emailed automatically]
+4. Continues using without interruption
+   ↓ [History grows: 50+ posts saved]
+5. Occasionally browses history to reuse templates
+```
 
-For MVP, prioritize these features to validate core value proposition:
+**Retention drivers:** Habit formation (weekly usage), history value (can't lose 50 posts), time savings
+**Churn risks:** Card failure (Smart Retries mitigates), cheaper competitor, no longer needed
+**Success metric:** <5% monthly churn (industry standard: 3-7%)
 
-### Must Have (Launch Blockers):
-1. **Industry selector** - 5 industries minimum (beauty specialist, personal trainer, physiotherapist, massage therapist, cosmetologist)
-2. **Image upload** - Simple file input, preview, ability to change
-3. **AI text generation** - Lithuanian language, connected to GPT-4 or Claude
-4. **Tone selector** - 3 presets (Friendly, Professional, Promotional)
-5. **Post length** - 3 presets (Short, Medium, Long)
-6. **Copy to clipboard** - One-click copy of generated text
-7. **Mobile-friendly UI** - Works on phones
+### Journey 4: Payment Failure → Recovery
 
-### Should Have (Important but not blockers):
-8. **Emoji toggle** - Auto-add emojis or not
-9. **Platform selector** - Optimize for Facebook vs Instagram
-10. **Character count** - Show length, warn if too long
+```
+1. Monthly charge fails (expired card)
+   ↓
+2. Stripe Smart Retries (automatic, 4 attempts over 2 weeks)
+   ↓ [Email: "Payment failed, please update card"]
+3. User clicks email link
+   ↓
+4. Stripe Customer Portal → update card
+   ↓
+5. Payment retried → succeeds
+   ↓
+6. Service continues uninterrupted
+```
 
-### Could Have (Defer to post-MVP):
-11. **Industry templates** - Pre-written starting points
-12. **Image generation** - AI-generated images as fallback
-13. **Hashtag suggestions** - Auto-suggest 3-5 hashtags
-14. **Seasonal awareness** - Lithuanian holiday/seasonal content
-
-### Won't Have (Explicitly excluded):
-- ❌ Post scheduling
-- ❌ Direct publishing to platforms
-- ❌ Analytics
-- ❌ Team collaboration
-- ❌ Content calendar
-- ❌ Advanced hashtag research
-- ❌ A/B testing
-- ❌ Brand kit (colors, fonts, logos)
-
----
-
-## Feature Complexity Assessment
-
-Understanding implementation effort for roadmap planning.
-
-### Low Complexity (1-3 days each):
-- Industry selector dropdown
-- Tone selector (3-5 presets)
-- Post length selector (3 presets)
-- Copy to clipboard button
-- Emoji toggle (on/off)
-- Character count display
-- Platform selector (Facebook/Instagram)
-
-### Medium Complexity (3-7 days each):
-- AI text generation integration (requires API setup, prompt engineering)
-- Image upload with preview
-- Mobile-responsive design
-- Industry-specific templates (requires content writing for each industry)
-- Lithuanian language quality tuning (testing, refinement)
-- Hashtag auto-suggest (basic implementation)
-
-### High Complexity (1-2 weeks each):
-- Image generation integration (requires second AI provider, UI for prompt input)
-- Lithuanian market awareness (seasonal patterns, local context)
-- Advanced prompt engineering for industry-specific vocabulary
-
-### Very High Complexity (Avoid for MVP):
-- Post scheduling (OAuth, API integrations, cron jobs)
-- Direct publishing (multiple platform APIs, auth flows)
-- Analytics dashboard (data collection, visualization, storage)
-- Team features (user management, permissions, collaboration)
+**Without automation:** 30-40% involuntary churn
+**With Smart Retries:** Recovers ~70% of failed payments
+**Critical:** Email notifications must be clear, non-alarmist
 
 ---
 
-## Competitive Feature Analysis
+## Phase Prioritization Recommendations
 
-What competitors offer vs what you should build.
+Based on feature dependencies and user journey:
 
-| Feature Category | Canva | Buffer | SocialBee | Predis.ai | **Your Tool** |
-|------------------|-------|--------|-----------|-----------|---------------|
-| AI text generation | ✅ | ✅ | ✅ | ✅ | ✅ **Must have** |
-| Image generation | ✅ | ❌ | ❌ | ✅ | ⚠️ **Optional (defer)** |
-| Image upload | ✅ | ✅ | ✅ | ✅ | ✅ **Must have** |
-| Post scheduling | ✅ | ✅ | ✅ | ✅ | ❌ **Anti-feature** |
-| Direct publishing | ✅ | ✅ | ✅ | ✅ | ❌ **Anti-feature** |
-| Multi-platform | ✅ | ✅ | ✅ | ✅ | ⚠️ **FB/IG only** |
-| Analytics | ✅ | ✅ | ✅ | ❌ | ❌ **Anti-feature** |
-| Team features | ✅ | ✅ | ✅ | ❌ | ❌ **Anti-feature** |
-| Templates | ✅ | ❌ | ✅ | ❌ | ✅ **Differentiator** |
-| Industry-specific | ❌ | ❌ | ❌ | ❌ | ✅ **Differentiator** |
-| Lithuanian-first | ❌ | ❌ | ❌ | ❌ | ✅ **Differentiator** |
-| No account needed | ❌ | ❌ | ❌ | ❌ | ✅ **Differentiator** |
-| <60sec workflow | ❌ | ❌ | ❌ | ❌ | ✅ **Differentiator** |
+### Phase 1: Authentication Foundation (Week 1-2)
+**Why first:** Required for all other features. No history/payments without users.
 
-### Competitive Positioning
+- Social login (Google, Facebook)
+- Email/password authentication
+- Password reset
+- Email verification
+- Session management
+- Basic user dashboard (empty state)
 
-**Canva:** Design-first platform with AI features. Strength: Visual design tools. Weakness: Complex for simple text posts; requires account; not Lithuanian-focused.
+**Deliverable:** User can sign up, log in, see dashboard
 
-**Buffer:** Scheduling-first platform with AI assistant. Strength: Simple, lightweight. Weakness: Still requires account; scheduling-focused (not pure generation); English-primary.
+### Phase 2: Post History (Week 3-4)
+**Why second:** Core value prop - users must see value before paying.
 
-**SocialBee:** Full-featured social media manager. Strength: 1000+ prompts, comprehensive features. Weakness: Feature bloat; expensive ($30+/month); overwhelming for small businesses.
+- Save generated posts to database
+- Post history list view (date, thumbnail, text snippet)
+- Individual post view
+- Copy post from history
+- Regenerate from history
+- Basic filters (date, industry)
 
-**Predis.ai:** AI content generator with visuals. Strength: 19+ languages including Lithuanian; free tier. Weakness: Requires login; focused on carousels/visuals; generic (not industry-specific).
+**Deliverable:** Users see accumulated value (post library)
 
-**Your Competitive Advantage:**
-1. **Lithuanian-first** - Not just translation, but native design
-2. **Industry-specific** - Built for beauty/wellness/therapy, not generic
-3. **Speed-obsessed** - 60-second guarantee vs competitors' multi-step workflows
-4. **Zero friction** - No account, no login, no onboarding
-5. **Copy-paste workflow** - Explicitly designed for manual posting (most users' reality)
+### Phase 3: Free Tier Quotas (Week 5)
+**Why third:** Gating mechanism to drive conversion.
 
----
+- Daily quota system (3 generations/day)
+- Usage counter display ("2/3 used")
+- Quota reset (midnight local time)
+- Limit enforcement (disable generate when 3/3)
+- Upgrade prompt modal when limit hit
 
-## Feature Prioritization Framework
+**Deliverable:** Free tier works, conversion trigger in place
 
-How to decide what to build next.
+### Phase 4: Payment Integration (Week 6-7)
+**Why fourth:** Requires working free tier to demonstrate value.
 
-### Decision Matrix
+- Stripe Checkout integration
+- Subscription creation (€9/month)
+- Stripe Customer Portal (update card, cancel)
+- Payment webhook handling (success, failure)
+- Invoice generation (automatic)
+- Unlimited quota for paid users
 
-For each potential feature, score 1-5 on:
-- **Speed impact:** Does this help achieve 60-second goal?
-- **Differentiation:** Does this separate you from competitors?
-- **Table stakes:** Do users expect this?
-- **Complexity:** How hard to build? (inverse score: 1=hard, 5=easy)
+**Deliverable:** Users can upgrade, payments work end-to-end
 
-**Formula:** Priority Score = (Speed × 2) + Differentiation + Table Stakes - Complexity
+### Phase 5: Retention Features (Week 8+)
+**Why last:** Polish for power users, not MVP critical.
 
-### Scored Examples
+- Usage alerts (80% quota, exhausted)
+- Search posts
+- Export history
+- Favorites/bookmarks
+- Download post as image
+- Credit rollover (if hybrid model chosen)
 
-| Feature | Speed | Diff | Stakes | Complex | Score | Verdict |
-|---------|-------|------|--------|---------|-------|---------|
-| Industry selector | 5 | 5 | 3 | 5 | 23 | ✅ Build now |
-| AI generation | 5 | 3 | 5 | 3 | 16 | ✅ Build now |
-| Copy button | 5 | 4 | 5 | 5 | 24 | ✅ Build now |
-| Tone presets | 4 | 3 | 4 | 5 | 20 | ✅ Build now |
-| Image upload | 4 | 2 | 5 | 4 | 17 | ✅ Build now |
-| Templates | 5 | 5 | 2 | 3 | 15 | ⚠️ Phase 2 |
-| Image generation | 2 | 3 | 4 | 1 | 10 | ⚠️ Defer |
-| Scheduling | 1 | 1 | 4 | 1 | 5 | ❌ Don't build |
-| Analytics | 1 | 1 | 2 | 1 | 3 | ❌ Don't build |
+**Deliverable:** Improved UX for retained users
 
 ---
 
-## User Journey Feature Mapping
+## MVP Feature Scope (Minimum Credible Product)
 
-What features serve each step of the 60-second workflow.
+To launch v2.0 credibly, MUST include:
 
-### Target Journey:
-1. **Land on page** (0:00) → No login required ✅
-2. **Select industry** (0:05) → Industry dropdown ✅
-3. **Upload/generate image** (0:15) → Image upload (primary), generation (fallback)
-4. **Configure settings** (0:30) → Tone selector, length selector, emoji toggle, platform
-5. **Generate text** (0:35) → AI generation API call
-6. **Review & refine** (0:50) → Display generated text, regenerate option
-7. **Copy & use** (0:55) → Copy to clipboard button
-8. **Done** (0:60) ✅
+**Authentication:**
+- [x] Google login (most common in Lithuania)
+- [x] Email/password fallback
+- [x] Password reset
 
-### Features Required for Journey:
+**History:**
+- [x] Post list view (date, thumbnail, text)
+- [x] Individual post view
+- [x] Copy from history
+- [x] Filter by date (basic: last 7 days, 30 days, all)
 
-**Step 1-2 (0-5 sec):** Zero friction start
-- ✅ No login/account
-- ✅ Clear landing page explaining workflow
-- ✅ Industry selector (5 industries minimum)
+**Payments:**
+- [x] Free tier: 3/day
+- [x] Pro tier: Unlimited (€9/month)
+- [x] Stripe Checkout
+- [x] Usage counter
+- [x] Upgrade prompt
 
-**Step 3 (5-15 sec):** Image handling
-- ✅ Image upload (drag-drop or file picker)
-- ✅ Image preview
-- ⚠️ Image generation (fallback, can defer)
-
-**Step 4 (15-30 sec):** Configuration
-- ✅ Tone selector (3-5 presets)
-- ✅ Length selector (Short/Medium/Long)
-- ✅ Platform selector (Facebook/Instagram)
-- ✅ Emoji toggle (on/off)
-- ⚠️ Hashtag preference (3-5 auto-suggested, can defer)
-
-**Step 5-6 (30-50 sec):** AI generation
-- ✅ Generate button
-- ✅ Loading state (with progress indication)
-- ✅ Display generated text
-- ✅ Character count
-- ⚠️ Regenerate option (nice to have)
-
-**Step 7-8 (50-60 sec):** Output
-- ✅ Copy to clipboard (single click)
-- ✅ Success confirmation
-- ⚠️ Download as image+text (optional enhancement)
+**CAN DEFER to v2.1:**
+- [ ] Facebook login (add if user demand)
+- [ ] Magic link login
+- [ ] Search posts
+- [ ] Export history
+- [ ] Favorites
+- [ ] Hybrid credit model
+- [ ] Annual billing
 
 ---
 
-## Sources
+## Open Questions for Implementation
 
-Research based on current ecosystem analysis (2026):
+1. **Social login priority:** Start with Google-only or build Google+Facebook simultaneously?
+   **Recommendation:** Google-only MVP (80% coverage), add Facebook in v2.1 if requested.
 
-**General AI Social Media Tools:**
-- [Canva AI Social Media Post Generator](https://www.canva.com/features/ai-social-media-post-generator/)
-- [SocialBee AI Post Generator](https://socialbee.com/ai-post-generator/)
-- [Buffer AI Social Media Post Creator](https://buffer.com/ai-assistant/social-media-post-creator)
-- [Best AI Social Media Post Generators (Softailed)](https://softailed.com/blog/best-ai-social-media-post-generators)
-- [6 Best AI Social Media Post Generators (CyberLink)](https://www.cyberlink.com/blog/photo-marketing-business/3828/best-ai-social-media-post-generator)
+2. **Quota reset timing:** Midnight local time (complex, user-friendly) or UTC (simple, less intuitive)?
+   **Recommendation:** Midnight UTC with clear messaging ("Resets daily at midnight UTC"). Add local time in v2.1.
 
-**Industry Trends & Table Stakes:**
-- [Social Media Trends 2026 (Slate)](https://slateteams.com/blog/social-media-trends-2026)
-- [Social Media Trends to Shape 2026 Strategy (Amplitude)](https://amplitudemktg.com/social-media/the-18-social-media-trends-to-shape-your-2026-strategy/)
-- [11 Best Social Media Management Tools 2026 (Buffer)](https://buffer.com/resources/best-social-media-management-tools/)
+3. **Payment model:** Pure subscription (€9/month unlimited) or hybrid (€5/month + credits)?
+   **Recommendation:** Start pure subscription (simpler), test hybrid in v2.2 if conversion is low.
 
-**Competitive Advantages & Differentiation:**
-- [Top 10 Social Media Trends 2026 (ALM Corp)](https://almcorp.com/blog/social-media-trends-2026/)
-- [7 Social Media Trends to Know (Sprout Social)](https://sproutsocial.com/insights/social-media-trends/)
-- [Best AI Social Media Post Generators Comparison](https://softailed.com/blog/best-ai-social-media-post-generators)
+4. **Image storage:** Store generated images in database/cloud or just save DALL-E URLs?
+   **Recommendation:** Save DALL-E URLs for MVP (simpler), add cloud storage if URLs expire or become issue.
 
-**Small Business Needs:**
-- [20 Best Free Social Media Management Tools (TheCMO)](https://thecmo.com/tools/best-free-social-media-management-tools/)
-- [12 Best Social Media Content Creation Tools (Proom)](https://proom.ai/blog/social-media-content-creation-tools)
-- [Best Social Media Tools for Business (WebsitePlanet)](https://www.websiteplanet.com/social-media-tools/)
+5. **Failed payment grace period:** How long until access revoked after payment failure?
+   **Recommendation:** 7 days grace period (Stripe Smart Retries cover this). Downgrade to free tier after 7 days, preserve history.
 
-**Service Provider Content:**
-- [Personality-led Content Trends 2026 (Professional Beauty)](https://professionalbeauty.co.uk/digital-marketing-trends-2026-salons-and-clinics)
-- [50 Social Media Ideas for Spas and Salons (Edgeless Beauty)](https://edgelessbeautypro.com/blog/for-skincare-professionals/social-media-ideas-for-spas-salons/)
-- [Social Media for Massage Therapists (AMTA)](https://www.amtamassage.org/about/news/guide-to-social-media/)
-
-**Multilingual Capabilities:**
-- [7 Best Tools for Multilingual Social Media Posts (Dialzara)](https://dialzara.com/blog/7-ai-tools-for-multilingual-social-media-posts)
-- [Guide to Multilingual Social Media Management (Fanpage Karma)](https://www.fanpagekarma.com/insights/a-guide-to-multilingual-social-media-management/)
-
-**Hashtag Strategy:**
-- [Are Hashtags Still Relevant in 2026? (First Ascent)](https://firstascentdesign.com/hashtag-strategy-2026/)
-- [Ultimate 2026 Guide to Social Media Hashtags (Outfy)](https://www.outfy.com/blog/the-ultimate-guide-to-social-media-hashtags/)
-- [Instagram Hashtag Tips 2026 (Sked Social)](https://skedsocial.com/blog/how-to-use-hashtags-on-instagram-in-2026-hashtag-tips-to-up-your-insta-game)
-
-**Feature Analysis:**
-- [Buffer: Schedule Natively or Use Buffer?](https://buffer.com/resources/schedule-social-media-posts-natively/)
-- [Social Media Scheduling Guide (Sendible)](https://www.sendible.com/insights/guide-to-social-media-management-for-small-businesses)
-- [Text to Emoji Generators (Vista Social)](https://vistasocial.com/social-media-tools/text-to-emoji-translator/)
+6. **Account deletion:** Immediate or delayed (7-30 days)?
+   **Recommendation:** Immediate deletion with 30-day restore window (soft delete). GDPR compliant, user-friendly.
 
 ---
 
 ## Confidence Assessment
 
-| Area | Confidence | Reason |
-|------|------------|--------|
-| **Table stakes features** | HIGH | Consistent across 10+ sources; clear market consensus on AI generation, tone control, platform optimization |
-| **Differentiators** | HIGH | Lithuanian-first and industry-specific are validated gaps in competitor analysis; no account requirement confirmed as friction point |
-| **Anti-features** | HIGH | Scheduling/publishing complexity well-documented; hashtag decline confirmed by Instagram policy changes (5 hashtag limit) |
-| **Complexity estimates** | MEDIUM | Based on general web development experience; actual implementation may vary based on AI provider choice |
-| **Service provider needs** | MEDIUM-HIGH | Verified through beauty/wellness industry sources; personality-led content and authenticity trends confirmed for 2026 |
-| **Lithuanian market specifics** | MEDIUM | Language support confirmed in major tools, but quality/native design gap is logical inference rather than direct evidence |
+| Feature Category | Confidence | Reasoning |
+|------------------|-----------|-----------|
+| Authentication (Social login, email/password) | HIGH | Industry standard patterns, verified via Stripe/Auth0 docs, WorkOS best practices |
+| History features (List, view, filter) | HIGH | Validated by competitor analysis (Jasper, Copy.ai save all content), common UX pattern |
+| Payment integration (Stripe) | HIGH | Official Stripe SaaS documentation verified, proven patterns |
+| Free tier limits | MEDIUM | Industry norms researched (ChatGPT: 2-3 images/day, Canva: 50 credits), but optimal number varies |
+| Feature prioritization | MEDIUM | Based on logical dependencies, but could adjust based on user feedback |
+| Anti-features (What NOT to build) | MEDIUM | Derived from SaaS 2026 trends, but some features might be requested later |
 
 ---
 
-## Open Questions for Validation
+## Sources
 
-Features to validate with target users before building:
+### Authentication & Onboarding
+- [SaaS authentication: the best method(s) to use for your app — WorkOS](https://workos.com/blog/saas-authentication)
+- [SaaS Authentication: Key Considerations & Best Practices — Descope](https://www.descope.com/blog/post/saas-auth)
+- [SaaS Onboarding in 2026: A Guide to Maximizing Adoption and Retention](https://www.sales-hacking.com/en/post/best-practices-onboarding-saas)
+- [8 examples of effective SaaS onboarding experiences — Appcues](https://www.appcues.com/blog/saas-user-onboarding)
 
-1. **Image generation necessity:** Do service providers actually need AI image generation, or do they always have real photos? (Hypothesis: They have photos, generation is unnecessary)
+### Dashboard & History Features
+- [12 best AI content generation tools in 2026 — Netlify](https://www.netlify.com/guides/best-ai-content-generation-tools/)
+- [17 Best AI Content Writing Tools Reviewed in 2026 — The CMO](https://thecmo.com/tools/best-ai-content-writing-tools/)
+- [Content creation tools for 2026: Plan, create & publish with Planable](https://planable.io/blog/content-creation-tools/)
 
-2. **Template value:** Will pre-written templates actually save time, or do they feel generic? (Test with 5 beauty specialists)
+### Payment Models
+- [SaaS 3.0 Analysis: The Shift from Subscriptions to Usage Based AI Billing (2026)](https://editorialge.com/saas-3-0-ai-billing-shift-analysis/)
+- [The 2026 Guide to SaaS, AI, and Agentic Pricing Models — Monetizely](https://www.getmonetizely.com/blogs/the-2026-guide-to-saas-ai-and-agentic-pricing-models)
+- [6 Proven Pricing Models for AI SaaS — Lago Blog](https://www.getlago.com/blog/6-proven-pricing-models-for-ai-saas)
+- [SaaS Credits System Guide 2026: Billing Models & Implementation](https://colorwhistle.com/saas-credits-system-guide/)
 
-3. **Tone presets:** Are 3 presets enough, or do users need more granularity? (Could test: Friendly, Professional, Promotional, Inspirational, Urgent)
+### Stripe Integration
+- [Integrate a SaaS business on Stripe — Stripe Documentation](https://docs.stripe.com/saas)
+- [Best practices for SaaS billing — Stripe](https://stripe.com/resources/more/best-practices-for-saas-billing)
+- [Stripe Integration Guide: Building Payment Flows for SaaS](https://anotherwrapper.com/blog/stripe-integration-guide)
 
-4. **Hashtag preference:** Do Lithuanian service providers use hashtags heavily, or is this a declining practice? (Instagram limits to 5, but local behavior may differ)
+### Usage Limits & Quotas
+- [Freemium Model Design: Building a Free Tier That Drives Paid Conversions - 2026 Guide](https://resources.rework.com/libraries/saas-growth/freemium-model-design)
+- [Gemini API Rate Limits 2026: Complete Per-Tier Guide](https://www.aifreeapi.com/en/posts/gemini-api-rate-limits-per-tier)
+- [ChatGPT Free Plan Image Generation Limits: Complete Reset Time & Bypass Guide (2025)](https://www.aifreeapi.com/en/posts/chatgpt-image-generation-limit-free-plan)
 
-5. **Platform priority:** Is Facebook or Instagram more important to Lithuanian service providers? (Affects optimization priority)
+### SaaS Anti-Patterns
+- [What Will Actually Work in SaaS in 2026 (And What Won't) — DEV Community](https://dev.to/digitalwareshub/what-will-actually-work-in-saas-in-2026-and-what-wont-2c7l)
+- [2026 SaaS Roadmap for Founders: AI, PLG & Profitable Growth](https://startupill.com/2026-saas-roadmap-for-founders/)
 
-6. **Post length preference:** Do beauty/wellness providers prefer short punchy posts or longer storytelling? (Industry-specific insight needed)
-
-7. **Regenerate frequency:** How often do users want to regenerate vs editing the output? (Affects whether editing features are needed)
-
----
-
-## Recommendations Summary
-
-### ✅ Build These (MVP Core):
-1. Industry selector (5 industries)
-2. AI text generation (Lithuanian, GPT-4 or Claude)
-3. Tone selector (3 presets: Friendly, Professional, Promotional)
-4. Post length selector (Short, Medium, Long)
-5. Image upload with preview
-6. Platform selector (Facebook/Instagram)
-7. Emoji toggle (on/off)
-8. Copy to clipboard button
-9. Mobile-responsive design
-10. Character count display
-
-### ⚠️ Consider These (Phase 2):
-11. Industry-specific templates (3-5 per industry)
-12. Hashtag auto-suggest (3-5 relevant hashtags)
-13. Regenerate button
-14. Lithuanian seasonal awareness
-
-### ⏸️ Defer These (Post-MVP):
-15. Image generation (AI-generated images)
-16. Advanced tone options (>5 presets)
-17. Download as image+text
-18. Multiple language support (start Lithuanian-only)
-
-### ❌ Don't Build These:
-- Post scheduling
-- Direct publishing to platforms
-- Analytics dashboard
-- Team collaboration features
-- Content calendar
-- Advanced hashtag research
-- A/B testing
-- Brand kit (colors, fonts, logos)
-- Content recycling/resharing
-- Multiple platform support beyond FB/IG
-
----
-
-## Success Metrics
-
-How to measure if features deliver on the 60-second promise:
-
-**Primary Metric:**
-- **Time to copy:** Measure from page load to clipboard copy (target: <60 seconds)
-
-**Secondary Metrics:**
-- **Generation success rate:** % of users who successfully generate text (target: >90%)
-- **Regeneration rate:** % of users who regenerate text (lower is better; indicates first generation quality)
-- **Feature usage:** Which customization options are actually used vs ignored
-- **Mobile vs desktop:** Usage split (hypothesis: 60%+ mobile for service providers)
-- **Industry distribution:** Which industries use the tool most (informs template priorities)
-
-**Qualitative Validation:**
-- **User interviews:** Do Lithuanian service providers find output natural/authentic?
-- **Template effectiveness:** Do users select templates or prefer blank generation?
-- **Copy-paste workflow:** Do users actually copy-paste, or do they want scheduling? (Validates anti-feature decision)
+### Competitor Analysis
+- [Jasper AI Pricing (2026): Which Plan Is Best For You? — DemandSage](https://www.demandsage.com/jasper-ai-pricing/)
+- [Jasper Vs Copy.ai: Which AI Tool Scales Businesses In 2026?](https://aitoolchooser.com/jasper-vs-copyai-which-ai-tool-scales-business/)
+- [A Complete Guide to Copy.ai Pricing and Alternatives](https://www.eesel.ai/blog/copy-ai-pricing)
