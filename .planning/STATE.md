@@ -6,16 +6,16 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Users can generate a professional, industry-appropriate social media post in under 60 seconds without any account creation or complex setup.
 
-**Current focus:** Phase 4 - Database Foundation
+**Current focus:** Phase 5 - Authentication
 
 ## Current Position
 
-Phase: 4 of 9 (Database Foundation)
-Plan: 1 of TBD in current phase
-Status: In progress
-Last activity: 2026-01-29 — Completed 04-01-PLAN.md (Database schema setup)
+Phase: 5 of 9 (Authentication)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-01-29 — Completed Phase 4 (Database Foundation with Supabase)
 
-Progress: [███░░░░░░░] 35% (v1.0 complete, v2.0 in progress)
+Progress: [████░░░░░░] 40% (v1.0 complete, Phase 4 complete)
 
 ## Performance Metrics
 
@@ -27,10 +27,11 @@ Progress: [███░░░░░░░] 35% (v1.0 complete, v2.0 in progress)
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 1
+- Total plans completed: 2
 - Total phases: 6 (Phases 4-9)
-- Average plan duration: 5.8 minutes
-- Status: Phase 4 in progress
+- Phases completed: 1 (Phase 4)
+- Average plan duration: 10.4 minutes
+- Status: Phase 5 ready to plan
 
 ## Accumulated Context
 
@@ -47,7 +48,7 @@ Recent decisions affecting current work:
 
 **v2.0 stack decisions (from research):**
 - Clerk for authentication (10K MAU free tier, Next.js 15 compatible)
-- Neon Postgres + Drizzle ORM (Edge Runtime compatible, serverless)
+- Supabase Postgres + Drizzle ORM (user choice, EU West region)
 - Stripe for payments (subscriptions + credits)
 
 **Phase 4 (Database Foundation) decisions:**
@@ -68,16 +69,14 @@ None yet.
 - Next.js 15.1.4 security vulnerability (npm warning - need to upgrade)
 
 **v2.0 considerations:**
-- **Phase 4:** DATABASE_URL environment variable needs configuration when Neon database is provisioned in Phase 5
-- **Phase 4:** Migrations need to be generated and run once database is provisioned
 - **Phase 5:** OAuth approval delays - Google verification takes 3-7 days, Facebook requires 6+ resubmissions. Start application process 3 weeks before launch.
 - **Phase 6:** DALL-E URL expiration - Image URLs may expire after 30-90 days. Verify expiration policy and implement Cloudflare R2 storage if needed.
 - **Phase 8:** Stripe webhook idempotency - Research flags this as needing deeper investigation during planning (multiple implementation patterns exist).
 
 ## Session Continuity
 
-Last session: 2026-01-29 08:01 UTC
-Stopped at: Completed 04-01-PLAN.md - Database schema setup
+Last session: 2026-01-29 17:10 UTC
+Stopped at: Completed Phase 4 - Database Foundation with Supabase
 Resume file: None
 
 Config:

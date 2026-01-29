@@ -2,7 +2,7 @@
 
 ## Overview
 
-Transform the anonymous v1 MVP into a credible SaaS product by adding authentication (Clerk), database persistence (Neon Postgres + Drizzle), post history, usage-based monetization (Stripe), and a user dashboard. The roadmap preserves the existing anonymous workflow while adding progressive authentication—users experience value before signup, then upgrade to save their work. Phases follow natural dependencies: Database → Auth → History → Usage Limits → Payments → Dashboard.
+Transform the anonymous v1 MVP into a credible SaaS product by adding authentication (Clerk), database persistence (Supabase Postgres + Drizzle), post history, usage-based monetization (Stripe), and a user dashboard. The roadmap preserves the existing anonymous workflow while adding progressive authentication—users experience value before signup, then upgrade to save their work. Phases follow natural dependencies: Database → Auth → History → Usage Limits → Payments → Dashboard.
 
 ## Milestones
 
@@ -38,26 +38,28 @@ Delivered drag-drop image upload (max 5MB), DALL-E 3 AI generation, Facebook/Ins
 
 **Milestone Goal:** Transform anonymous tool into SaaS with user accounts, post history, and Stripe payments.
 
-#### Phase 4: Database Foundation
+#### Phase 4: Database Foundation ✓
 
 **Goal**: Establish database infrastructure for all user-specific features
 
+**Status**: Complete (2026-01-29)
+
 **Depends on**: Phase 3 (v1 shipped)
 
-**Requirements**: Database schema design (not explicitly in REQUIREMENTS.md, foundational work)
+**Requirements**: Database schema design (foundational work)
 
-**Success Criteria** (what must be TRUE):
-1. Neon Postgres database provisioned and connected to Vercel project
-2. Drizzle ORM configured with Edge Runtime compatibility verified
-3. Database schema defined for users, posts, subscriptions, and usage_limits tables
-4. Database migrations run successfully in development and preview environments
-5. Database queries work from Edge Runtime API routes (HTTP driver verified)
+**Success Criteria** (verified):
+1. ✓ Supabase Postgres database provisioned and connected
+2. ✓ Drizzle ORM configured with postgres.js driver
+3. ✓ Database schema defined for users, posts, subscriptions, and usage_limits tables
+4. ✓ Schema pushed via drizzle-kit push
+5. ✓ Database queries work from API routes (/api/db-health verified)
 
-**Plans**: 2 plans
+**Plans**: 2 plans (complete)
 
 Plans:
-- [ ] 04-01-PLAN.md - Install Drizzle ORM, Neon driver, and create database schema
-- [ ] 04-02-PLAN.md - Push schema to Neon and verify Edge Runtime connectivity
+- [x] 04-01-PLAN.md - Install Drizzle ORM and create database schema
+- [x] 04-02-PLAN.md - Push schema to Supabase and verify connectivity
 
 #### Phase 5: Authentication
 
@@ -177,8 +179,8 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 1. Foundation | v1.0 | 3/3 | Complete | 2026-01-27 |
 | 2. Core Generator | v1.0 | 2/2 | Complete | 2026-01-27 |
 | 3. Image & Preview | v1.0 | 3/3 | Complete | 2026-01-27 |
-| 4. Database Foundation | v2.0 | 0/2 | Ready | - |
-| 5. Authentication | v2.0 | 0/TBD | Not started | - |
+| 4. Database Foundation | v2.0 | 2/2 | Complete | 2026-01-29 |
+| 5. Authentication | v2.0 | 0/TBD | Ready | - |
 | 6. Post History | v2.0 | 0/TBD | Not started | - |
 | 7. Usage Limits | v2.0 | 0/TBD | Not started | - |
 | 8. Payments | v2.0 | 0/TBD | Not started | - |
