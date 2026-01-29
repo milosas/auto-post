@@ -3,9 +3,9 @@
 ## Current State
 
 **Shipped:** v1 MVP (2026-01-27)
-**Status:** Production-ready, awaiting deployment
+**Active:** v2.0 User System + Monetization
 
-**What v1 delivers:**
+**What v1 delivered:**
 - AI-powered post generator for Lithuanian service providers
 - 20 industry categories with fuzzy autocomplete
 - Streaming text generation with visual feedback
@@ -13,6 +13,18 @@
 - Facebook/Instagram social preview
 - Multi-format download (PNG/JPEG)
 - Complete 60-second workflow from landing to download
+
+## Current Milestone: v2.0 User System + Monetization
+
+**Goal:** Transform anonymous tool into SaaS with user accounts, post history, and Stripe payments.
+
+**Target features:**
+- Industry selector UX fix (expand on click)
+- Authentication (Google, Facebook, Email)
+- User dashboard with post history by date
+- Database storage for generated text + images
+- Stripe payments (subscription + credits)
+- Free tier: 3 generations/day
 
 ## What This Is
 
@@ -43,15 +55,23 @@ Users can generate a professional, industry-appropriate social media post in und
 
 ### Active
 
-(None — awaiting user feedback from v1 deployment)
+- [ ] Industry selector expands on click (UX fix)
+- [ ] Google OAuth authentication
+- [ ] Facebook OAuth authentication
+- [ ] Email/password authentication
+- [ ] User dashboard
+- [ ] Post history storage (text + images)
+- [ ] History view by date
+- [ ] Stripe subscription payments
+- [ ] Stripe credits/tokens system
+- [ ] Free tier with 3 generations/day limit
 
 ### Out of Scope
 
-- User accounts / authentication — MVP is anonymous, no login
 - Post scheduling — users copy/paste manually
 - Direct posting to social media — requires OAuth complexity
 - Analytics / tracking — not needed for MVP
-- Templates library — future feature (v2)
+- Templates library — deferred, focus on core SaaS features first
 - Multi-language beyond Lithuanian — LT only for now
 - Team collaboration — single-user tool
 - Image crop functionality — upload as-is
@@ -108,4 +128,4 @@ Tracked for future cleanup:
 - **Image optimization:** Using `<img>` instead of `next/image`
 
 ---
-*Last updated: 2026-01-27 after v1 milestone completion*
+*Last updated: 2026-01-29 after v2.0 milestone initialization*
