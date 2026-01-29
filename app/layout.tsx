@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from '@clerk/nextjs'
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
@@ -13,20 +14,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="lt">
-      <body>
-        {children}
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            duration: 2000,
-            style: {
-              background: '#333',
-              color: '#fff',
-            },
-          }}
-        />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="lt">
+        <body>
+          {children}
+          <Toaster
+            position="bottom-center"
+            toastOptions={{
+              duration: 2000,
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+            }}
+          />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
