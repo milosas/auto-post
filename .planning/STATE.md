@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 ## Current Position
 
 Phase: 4 of 9 (Database Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-01-29 — Roadmap created for v2.0 User System + Monetization milestone
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-01-29 — Completed 04-01-PLAN.md (Database schema setup)
 
-Progress: [███░░░░░░░] 33% (v1.0 complete, v2.0 starting)
+Progress: [███░░░░░░░] 35% (v1.0 complete, v2.0 in progress)
 
 ## Performance Metrics
 
@@ -27,11 +27,10 @@ Progress: [███░░░░░░░] 33% (v1.0 complete, v2.0 starting)
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 0
+- Total plans completed: 1
 - Total phases: 6 (Phases 4-9)
-- Status: Ready to plan Phase 4
-
-*Will update after first v2.0 plan completion*
+- Average plan duration: 5.8 minutes
+- Status: Phase 4 in progress
 
 ## Accumulated Context
 
@@ -51,6 +50,12 @@ Recent decisions affecting current work:
 - Neon Postgres + Drizzle ORM (Edge Runtime compatible, serverless)
 - Stripe for payments (subscriptions + credits)
 
+**Phase 4 (Database Foundation) decisions:**
+- generatedAlwaysAsIdentity() over serial (PostgreSQL 15+ standard)
+- Soft delete with partial unique indexes (email reuse after deletion)
+- Index all foreign key columns (query performance)
+- JSONB for generation config (flexible without schema migrations)
+
 ### Pending Todos
 
 None yet.
@@ -63,14 +68,16 @@ None yet.
 - Next.js 15.1.4 security vulnerability (npm warning - need to upgrade)
 
 **v2.0 considerations:**
+- **Phase 4:** DATABASE_URL environment variable needs configuration when Neon database is provisioned in Phase 5
+- **Phase 4:** Migrations need to be generated and run once database is provisioned
 - **Phase 5:** OAuth approval delays - Google verification takes 3-7 days, Facebook requires 6+ resubmissions. Start application process 3 weeks before launch.
 - **Phase 6:** DALL-E URL expiration - Image URLs may expire after 30-90 days. Verify expiration policy and implement Cloudflare R2 storage if needed.
 - **Phase 8:** Stripe webhook idempotency - Research flags this as needing deeper investigation during planning (multiple implementation patterns exist).
 
 ## Session Continuity
 
-Last session: 2026-01-29
-Stopped at: Roadmap created for v2.0, ready to begin Phase 4 planning
+Last session: 2026-01-29 08:01 UTC
+Stopped at: Completed 04-01-PLAN.md - Database schema setup
 Resume file: None
 
 Config:
