@@ -53,10 +53,11 @@ Delivered drag-drop image upload (max 5MB), DALL-E 3 AI generation, Facebook/Ins
 4. Database migrations run successfully in development and preview environments
 5. Database queries work from Edge Runtime API routes (HTTP driver verified)
 
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD during planning
+- [ ] 04-01-PLAN.md - Install Drizzle ORM, Neon driver, and create database schema
+- [ ] 04-02-PLAN.md - Push schema to Neon and verify Edge Runtime connectivity
 
 #### Phase 5: Authentication
 
@@ -176,7 +177,7 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 1. Foundation | v1.0 | 3/3 | Complete | 2026-01-27 |
 | 2. Core Generator | v1.0 | 2/2 | Complete | 2026-01-27 |
 | 3. Image & Preview | v1.0 | 3/3 | Complete | 2026-01-27 |
-| 4. Database Foundation | v2.0 | 0/TBD | Not started | - |
+| 4. Database Foundation | v2.0 | 0/2 | Ready | - |
 | 5. Authentication | v2.0 | 0/TBD | Not started | - |
 | 6. Post History | v2.0 | 0/TBD | Not started | - |
 | 7. Usage Limits | v2.0 | 0/TBD | Not started | - |
