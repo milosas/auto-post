@@ -16,6 +16,7 @@ export function IndustryAutocomplete({
   className = '',
 }: IndustryAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -30,14 +31,17 @@ export function IndustryAutocomplete({
   );
 
   const suggestions = useMemo(() => {
-    if (!value || value.length < 2) {
-      return [...INDUSTRIES]; // Rodyti visas industrijas
+    // Jei showAll arba tuščias - rodyti visas industrijas
+    if (showAll || !value || value.length < 2) {
+      return [...INDUSTRIES];
     }
+    // Kitaip - fuzzy search
     const results = fuse.search(value);
-    return results.map((result) => result.item); // Rodyti visus rezultatus
-  }, [value, fuse]);
+    return results.map((result) => result.item);
+  }, [value, fuse, showAll]);
 
   const handleFocus = () => {
+    setShowAll(true);
     setIsOpen(true);
     setHighlightedIndex(0);
   };
@@ -51,6 +55,7 @@ export function IndustryAutocomplete({
 
   const handleSelect = (industry: string) => {
     onChange(industry);
+    setShowAll(false);
     setIsOpen(false);
     inputRef.current?.blur();
   };
@@ -92,7 +97,10 @@ export function IndustryAutocomplete({
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          setShowAll(false);
+          onChange(e.target.value);
+        }}
         onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
