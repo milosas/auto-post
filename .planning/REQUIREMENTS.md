@@ -107,47 +107,47 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UX-01 | TBD | Pending |
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| AUTH-05 | TBD | Pending |
-| AUTH-06 | TBD | Pending |
-| AUTH-07 | TBD | Pending |
-| AUTH-08 | TBD | Pending |
-| AUTH-09 | TBD | Pending |
-| HIST-01 | TBD | Pending |
-| HIST-02 | TBD | Pending |
-| HIST-03 | TBD | Pending |
-| HIST-04 | TBD | Pending |
-| HIST-05 | TBD | Pending |
-| HIST-06 | TBD | Pending |
-| HIST-07 | TBD | Pending |
-| HIST-08 | TBD | Pending |
-| USAGE-01 | TBD | Pending |
-| USAGE-02 | TBD | Pending |
-| USAGE-03 | TBD | Pending |
-| USAGE-04 | TBD | Pending |
-| USAGE-05 | TBD | Pending |
-| PAY-01 | TBD | Pending |
-| PAY-02 | TBD | Pending |
-| PAY-03 | TBD | Pending |
-| PAY-04 | TBD | Pending |
-| PAY-05 | TBD | Pending |
-| PAY-06 | TBD | Pending |
-| PAY-07 | TBD | Pending |
-| PAY-08 | TBD | Pending |
-| DASH-01 | TBD | Pending |
-| DASH-02 | TBD | Pending |
-| DASH-03 | TBD | Pending |
-| DASH-04 | TBD | Pending |
+| UX-01 | Phase 9 | Pending |
+| AUTH-01 | Phase 5 | Pending |
+| AUTH-02 | Phase 5 | Pending |
+| AUTH-03 | Phase 5 | Pending |
+| AUTH-04 | Phase 5 | Pending |
+| AUTH-05 | Phase 5 | Pending |
+| AUTH-06 | Phase 5 | Pending |
+| AUTH-07 | Phase 5 | Pending |
+| AUTH-08 | Phase 5 | Pending |
+| AUTH-09 | Phase 5 | Pending |
+| HIST-01 | Phase 6 | Pending |
+| HIST-02 | Phase 6 | Pending |
+| HIST-03 | Phase 6 | Pending |
+| HIST-04 | Phase 6 | Pending |
+| HIST-05 | Phase 6 | Pending |
+| HIST-06 | Phase 6 | Pending |
+| HIST-07 | Phase 6 | Pending |
+| HIST-08 | Phase 6 | Pending |
+| USAGE-01 | Phase 7 | Pending |
+| USAGE-02 | Phase 7 | Pending |
+| USAGE-03 | Phase 7 | Pending |
+| USAGE-04 | Phase 7 | Pending |
+| USAGE-05 | Phase 7 | Pending |
+| PAY-01 | Phase 8 | Pending |
+| PAY-02 | Phase 8 | Pending |
+| PAY-03 | Phase 8 | Pending |
+| PAY-04 | Phase 8 | Pending |
+| PAY-05 | Phase 8 | Pending |
+| PAY-06 | Phase 8 | Pending |
+| PAY-07 | Phase 8 | Pending |
+| PAY-08 | Phase 8 | Pending |
+| DASH-01 | Phase 9 | Pending |
+| DASH-02 | Phase 9 | Pending |
+| DASH-03 | Phase 9 | Pending |
+| DASH-04 | Phase 9 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 35 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 35
+- Mapped to phases: 35/35 (100%)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-29*
-*Last updated: 2026-01-29 after initial definition*
+*Last updated: 2026-01-29 after roadmap creation*
