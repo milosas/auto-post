@@ -79,10 +79,13 @@ Plans:
 7. Anonymous users can still access generation workflow without authentication
 8. Clerk user data syncs to database users table via webhooks
 
-**Plans**: TBD
+**Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 05-01: TBD during planning
+- [ ] 05-01-PLAN.md - Install Clerk SDK, configure middleware and ClerkProvider
+- [ ] 05-02-PLAN.md - Create sign-in and sign-up pages with Clerk components
+- [ ] 05-03-PLAN.md - Create webhook handler for Supabase user sync
+- [ ] 05-04-PLAN.md - Add AuthHeader component and integrate into main page
 
 #### Phase 6: Post History
 
@@ -180,7 +183,7 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 2. Core Generator | v1.0 | 2/2 | Complete | 2026-01-27 |
 | 3. Image & Preview | v1.0 | 3/3 | Complete | 2026-01-27 |
 | 4. Database Foundation | v2.0 | 2/2 | Complete | 2026-01-29 |
-| 5. Authentication | v2.0 | 0/TBD | Ready | - |
+| 5. Authentication | v2.0 | 0/4 | Ready | - |
 | 6. Post History | v2.0 | 0/TBD | Not started | - |
 | 7. Usage Limits | v2.0 | 0/TBD | Not started | - |
 | 8. Payments | v2.0 | 0/TBD | Not started | - |
