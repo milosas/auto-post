@@ -11,7 +11,7 @@ import { SocialPreview } from './components/SocialPreview';
 import { DownloadButton } from './components/DownloadButton';
 import { GenerationOptions } from './components/GenerationOptions';
 import { useImagePreview } from './lib/image-utils';
-import { INDUSTRIES } from './lib/industries';
+import { INDUSTRIES, getPlaceholderForIndustry } from './lib/industries';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
@@ -358,7 +358,7 @@ export default function HomePage() {
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Pvz.: Nauja plaukų dažymo technika, rudens akcija -20%, patarimai sveikai mitybai..."
+            placeholder={getPlaceholderForIndustry(industry)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
             rows={4}
           />
