@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.18",
     "@ai-sdk/openai-compatible": "^2.0.18",
+    "@clerk/nextjs": "^6.37.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.1",
     "ai": "^6.0.49",
