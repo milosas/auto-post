@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 ## Current Position
 
 Phase: 6 of 9 (Post History) — In progress
-Plan: 1 of 4 complete (Storage and Query Helpers)
+Plan: 2 of 4 complete (Post CRUD API Routes)
 Status: Phase 6 in progress
-Last activity: 2026-01-31 — Completed 06-01-PLAN.md (Storage and Query Helpers)
+Last activity: 2026-01-31 — Completed 06-02-PLAN.md (Post CRUD API Routes)
 
-Progress: [███████░░░] 70% (v1.0 complete, Phase 4-5 complete, Phase 6 started)
+Progress: [███████░░░] 72% (v1.0 complete, Phase 4-5 complete, Phase 6 in progress)
 
 **Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
@@ -29,11 +29,11 @@ Progress: [███████░░░] 70% (v1.0 complete, Phase 4-5 complet
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 4
+- Total plans completed: 5
 - Total phases: 6 (Phases 4-9)
 - Phases completed: 2 (Phase 4-5)
-- Average plan duration: 6.5 minutes
-- Status: Phase 6 in progress (Plan 01 complete)
+- Average plan duration: 6.4 minutes
+- Status: Phase 6 in progress (Plans 01-02 complete)
 
 ## Accumulated Context
 
@@ -71,6 +71,11 @@ Recent decisions affecting current work:
 - PAGINATION-01: Cursor-based pagination over offset-based (stable pagination, better performance)
 - SEARCH-01: ILIKE for case-insensitive search (simple, sufficient for v2.0)
 
+**Phase 6 Plan 02 (Post CRUD API Routes) decisions:**
+- API-01: Node.js runtime over Edge runtime (Drizzle requires Node.js built-ins)
+- API-02: Internal user ID lookup pattern (auth ID → internal ID for every request)
+- API-03: Error responses return JSON for consistency (even 204 uses NextResponse)
+
 ### Pending Todos
 
 None yet.
@@ -89,8 +94,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 07:57 UTC
-Stopped at: Completed 06-01-PLAN.md (Storage and Query Helpers)
+Last session: 2026-01-31 08:06 UTC
+Stopped at: Completed 06-02-PLAN.md (Post CRUD API Routes)
 Resume file: None
 
 Config:
