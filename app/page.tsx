@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { IndustryAutocomplete } from './components/IndustryAutocomplete';
 import { PostConfiguration, PostConfigurationValues } from './components/PostConfiguration';
 import { StreamingDisplay } from './components/StreamingDisplay';
@@ -19,6 +20,8 @@ import type { User } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
+  const searchParams = useSearchParams();
+
   const [industry, setIndustry] = useState('');
   const [prompt, setPrompt] = useState('');
   const [config, setConfig] = useState<PostConfigurationValues>({
@@ -42,6 +45,37 @@ export default function HomePage() {
   // Image preview from uploaded file
   const uploadedImagePreview = useImagePreview(imageFile);
   const displayImageUrl = imageSource === 'upload' ? uploadedImagePreview : imageUrl;
+
+  // Pre-fill form fields from URL searchParams (for regenerate flow)
+  useEffect(() => {
+    const industryParam = searchParams.get('industry');
+    const topicParam = searchParams.get('topic');
+    const toneParam = searchParams.get('tone');
+    const lengthParam = searchParams.get('length');
+    const emojiParam = searchParams.get('emoji');
+    const imageStyleParam = searchParams.get('imageStyle');
+
+    if (industryParam) setIndustry(industryParam);
+    if (topicParam) setPrompt(topicParam);
+
+    // Map config params with proper type validation
+    if (toneParam || lengthParam || emojiParam) {
+      const validTones = ['professional', 'friendly', 'motivational', 'humorous'] as const;
+      const validEmojis = ['yes', 'no', 'minimal'] as const;
+      const validLengths = ['short', 'medium', 'long'] as const;
+
+      setConfig(prev => ({
+        tone: (toneParam && validTones.includes(toneParam as any)) ? toneParam as typeof validTones[number] : prev.tone,
+        emoji: emojiParam === 'true' ? 'yes' : emojiParam === 'false' ? 'no' : prev.emoji,
+        length: lengthParam === '100' ? 'short' : lengthParam === '200' ? 'medium' : lengthParam === '300' ? 'long' : prev.length,
+      }));
+    }
+
+    // Clear URL params after reading (cleaner UX)
+    if (searchParams.toString()) {
+      window.history.replaceState({}, '', '/');
+    }
+  }, [searchParams]);
 
   // Check authentication status on mount
   useEffect(() => {
