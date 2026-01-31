@@ -15,20 +15,33 @@ interface Post {
 interface PostHistoryListProps {
   initialPosts: Post[];
   initialCursor: number | null;
+  searchQuery: string;
+  favoritesOnly: boolean;
 }
 
-export function PostHistoryList({ initialPosts, initialCursor }: PostHistoryListProps) {
+export function PostHistoryList({ initialPosts, initialCursor, searchQuery, favoritesOnly }: PostHistoryListProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [cursor, setCursor] = useState<number | null>(initialCursor);
   const [isPending, startTransition] = useTransition();
   const { ref, inView } = useInView();
+
+  // Reset posts when search/filter changes (server already handled initial load)
+  useEffect(() => {
+    setPosts(initialPosts);
+    setCursor(initialCursor);
+  }, [searchQuery, favoritesOnly, initialPosts, initialCursor]);
 
   // Load more posts when the sentinel element comes into view
   useEffect(() => {
     if (inView && cursor !== null && !isPending) {
       startTransition(async () => {
         try {
-          const response = await fetch(`/api/posts?cursor=${cursor}`);
+          const params = new URLSearchParams();
+          params.set('cursor', cursor.toString());
+          if (searchQuery) params.set('search', searchQuery);
+          if (favoritesOnly) params.set('favorites', 'true');
+
+          const response = await fetch(`/api/posts?${params.toString()}`);
 
           if (!response.ok) {
             console.error('Failed to fetch more posts');
@@ -43,7 +56,7 @@ export function PostHistoryList({ initialPosts, initialCursor }: PostHistoryList
         }
       });
     }
-  }, [inView, cursor, isPending]);
+  }, [inView, cursor, isPending, searchQuery, favoritesOnly]);
 
   // Empty state
   if (posts.length === 0) {

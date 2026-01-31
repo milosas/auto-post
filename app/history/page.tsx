@@ -5,8 +5,17 @@ import { db } from '@/app/db';
 import { users } from '@/app/db/schema';
 import { eq } from 'drizzle-orm';
 import { PostHistoryList } from '@/app/components/PostHistoryList';
+import { HistoryControls } from '@/app/components/HistoryControls';
 
-export default async function HistoryPage() {
+export default async function HistoryPage({
+  searchParams
+}: {
+  searchParams: Promise<{ search?: string; favorites?: string }>
+}) {
+  const params = await searchParams;
+  const searchQuery = params.search || '';
+  const favoritesOnly = params.favorites === 'true';
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -20,7 +29,12 @@ export default async function HistoryPage() {
     redirect('/sign-in');
   }
 
-  const { posts, nextCursor } = await getUserPosts(dbUser.id);
+  const { posts, nextCursor } = await getUserPosts(
+    dbUser.id,
+    undefined, // cursor
+    searchQuery || undefined,
+    favoritesOnly
+  );
 
   // Serialize dates to strings for client component
   const serializedPosts = posts.map(post => ({
@@ -37,7 +51,18 @@ export default async function HistoryPage() {
             Peržiūrėkite visus sugeneruotus įrašus
           </p>
         </div>
-        <PostHistoryList initialPosts={serializedPosts} initialCursor={nextCursor} />
+
+        <HistoryControls
+          initialSearch={searchQuery}
+          initialFavorites={favoritesOnly}
+        />
+
+        <PostHistoryList
+          initialPosts={serializedPosts}
+          initialCursor={nextCursor}
+          searchQuery={searchQuery}
+          favoritesOnly={favoritesOnly}
+        />
       </div>
     </div>
   );
