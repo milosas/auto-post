@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { IndustryAutocomplete } from './components/IndustryAutocomplete';
 import { PostConfiguration, PostConfigurationValues } from './components/PostConfiguration';
 import { StreamingDisplay } from './components/StreamingDisplay';
@@ -10,8 +10,12 @@ import { ImageUpload } from './components/ImageUpload';
 import { SocialPreview } from './components/SocialPreview';
 import { DownloadButton } from './components/DownloadButton';
 import { GenerationOptions } from './components/GenerationOptions';
+import { SavePostButton } from './components/SavePostButton';
 import { useImagePreview } from './lib/image-utils';
+import AuthHeader from './components/AuthHeader';
 import { INDUSTRIES, getPlaceholderForIndustry } from './lib/industries';
+import { createClient } from '@/lib/supabase/client';
+import type { User } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
@@ -31,12 +35,23 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
   // Image preview from uploaded file
   const uploadedImagePreview = useImagePreview(imageFile);
   const displayImageUrl = imageSource === 'upload' ? uploadedImagePreview : imageUrl;
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkUser();
+  }, []);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -336,10 +351,15 @@ export default function HomePage() {
       <div className="flex-1 p-4 pb-32 max-w-2xl mx-auto w-full">
         {/* Header */}
         <header className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Social Post Generator</h1>
-          <p className="text-gray-600">
-            Sukurkite profesionalų socialinių tinklų įrašą per 60 sekundžių
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Social Post Generator</h1>
+              <p className="text-gray-600">
+                Sukurkite profesionalų socialinių tinklų įrašą per 60 sekundžių
+              </p>
+            </div>
+            <AuthHeader />
+          </div>
         </header>
 
         {/* Industry Selection */}
@@ -459,6 +479,39 @@ export default function HomePage() {
             />
           </div>
         </section>
+
+        {/* Save Post Button - only for authenticated users with generated content */}
+        {user && generatedText && (
+          <section className="mb-6">
+            <SavePostButton
+              text={generatedText}
+              imageUrl={imageUrl || undefined}
+              config={{
+                industry: industry,
+                topic: prompt,
+                tone: config.tone,
+                length: config.length === 'short' ? 100 : config.length === 'medium' ? 200 : 300,
+                emoji: config.emoji === 'no' ? false : true,
+                imageStyle: imageSource === 'ai' ? 'ai-generated' : undefined,
+              }}
+              onSaved={(postId) => {
+                console.log('Post saved:', postId);
+                toast.success('Įrašas sėkmingai išsaugotas!');
+              }}
+            />
+          </section>
+        )}
+
+        {/* Sign-in prompt for unauthenticated users */}
+        {!user && generatedText && (
+          <section className="mb-6">
+            <div className="p-4 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 text-center">
+              <p className="text-sm">
+                Prisijunkite, kad išsaugotumėte įrašą į savo istoriją
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* Error Display */}
         {error && (
