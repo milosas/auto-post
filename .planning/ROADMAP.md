@@ -99,7 +99,9 @@ Plans:
 
 **Requirements**: HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08
 
-**Success Criteria** (what must be TRUE):
+**Status**: Complete (2026-01-31)
+
+**Success Criteria** (verified):
 1. Generated posts save to database with text, image URL, and generation config
 2. User can view list of saved posts with date, thumbnail, and text preview
 3. User can view individual post details with full text and image
@@ -108,14 +110,24 @@ Plans:
 6. User can search posts by text content
 7. User can mark posts as favorites and view favorites separately
 
-**Plans**: 5 plans in 4 waves
+**Delivered:**
+- Supabase Storage for permanent DALL-E image storage (lib/supabase/storage.ts)
+- Drizzle query helpers for posts CRUD with cursor pagination (lib/posts/queries.ts)
+- Posts API routes (app/api/posts/route.ts, app/api/posts/[id]/route.ts)
+- SavePostButton with loading states (app/components/SavePostButton.tsx)
+- History list with infinite scroll (app/history/page.tsx, PostHistoryList.tsx)
+- Post detail with copy and regenerate (app/history/[id]/page.tsx)
+- Search with 300ms debounce (SearchBar.tsx)
+- Favorites with optimistic updates (FavoriteButton.tsx)
+
+**Plans**: 5 plans (complete)
 
 Plans:
-- [ ] 06-01-PLAN.md - Storage helpers and post query functions
-- [ ] 06-02-PLAN.md - Posts API routes (save, list, detail, favorite, delete)
-- [ ] 06-03-PLAN.md - SavePostButton integration on main page
-- [ ] 06-04-PLAN.md - History list and detail pages with infinite scroll
-- [ ] 06-05-PLAN.md - Search and favorites functionality
+- [x] 06-01-PLAN.md - Storage helpers and post query functions
+- [x] 06-02-PLAN.md - Posts API routes (save, list, detail, favorite, delete)
+- [x] 06-03-PLAN.md - SavePostButton integration on main page
+- [x] 06-04-PLAN.md - History list and detail pages with infinite scroll
+- [x] 06-05-PLAN.md - Search and favorites functionality
 
 #### Phase 7: Usage Limits
 
@@ -192,7 +204,7 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 3. Image & Preview | v1.0 | Complete | 2026-01-27 |
 | 4. Database Foundation | v2.0 | Complete | 2026-01-29 |
 | 5. Authentication | v2.0 | Complete | 2026-01-31 |
-| 6. Post History | v2.0 | Not started | - |
+| 6. Post History | v2.0 | Complete | 2026-01-31 |
 | 7. Usage Limits | v2.0 | Not started | - |
 | 8. Payments | v2.0 | Not started | - |
 | 9. Dashboard & Polish | v2.0 | Not started | - |

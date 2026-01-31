@@ -25,14 +25,14 @@ Requirements for User System + Monetization milestone. Each maps to roadmap phas
 
 ### Post History
 
-- [ ] **HIST-01**: Generated posts are saved to database (text + image URL)
-- [ ] **HIST-02**: User can view list of saved posts (date, thumbnail, text preview)
-- [ ] **HIST-03**: User can view individual post details (full text + image)
-- [ ] **HIST-04**: User can copy text from saved post
-- [ ] **HIST-05**: User can regenerate post from saved configuration
-- [ ] **HIST-06**: User can search posts by text content
-- [ ] **HIST-07**: User can mark posts as favorites
-- [ ] **HIST-08**: User can view favorite posts separately
+- [x] **HIST-01**: Generated posts are saved to database (text + image URL)
+- [x] **HIST-02**: User can view list of saved posts (date, thumbnail, text preview)
+- [x] **HIST-03**: User can view individual post details (full text + image)
+- [x] **HIST-04**: User can copy text from saved post
+- [x] **HIST-05**: User can regenerate post from saved configuration
+- [x] **HIST-06**: User can search posts by text content
+- [x] **HIST-07**: User can mark posts as favorites
+- [x] **HIST-08**: User can view favorite posts separately
 
 ### Usage & Limits
 
@@ -117,14 +117,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-07 | Phase 5 | Pending |
 | AUTH-08 | Phase 5 | Pending |
 | AUTH-09 | Phase 5 | Pending |
-| HIST-01 | Phase 6 | Pending |
-| HIST-02 | Phase 6 | Pending |
-| HIST-03 | Phase 6 | Pending |
-| HIST-04 | Phase 6 | Pending |
-| HIST-05 | Phase 6 | Pending |
-| HIST-06 | Phase 6 | Pending |
-| HIST-07 | Phase 6 | Pending |
-| HIST-08 | Phase 6 | Pending |
+| HIST-01 | Phase 6 | Complete |
+| HIST-02 | Phase 6 | Complete |
+| HIST-03 | Phase 6 | Complete |
+| HIST-04 | Phase 6 | Complete |
+| HIST-05 | Phase 6 | Complete |
+| HIST-06 | Phase 6 | Complete |
+| HIST-07 | Phase 6 | Complete |
+| HIST-08 | Phase 6 | Complete |
 | USAGE-01 | Phase 7 | Pending |
 | USAGE-02 | Phase 7 | Pending |
 | USAGE-03 | Phase 7 | Pending |

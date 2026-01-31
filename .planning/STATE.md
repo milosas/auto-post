@@ -6,7 +6,7 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Users can generate a professional, industry-appropriate social media post in under 60 seconds without any account creation or complex setup.
 
-**Current focus:** Phase 6 - Post History (ready to start)
+**Current focus:** Phase 7 - Usage Limits (ready to plan)
 
 ## Current Position
 
