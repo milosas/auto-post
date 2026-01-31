@@ -6,13 +6,13 @@ Transform the anonymous v1 MVP into a credible SaaS product by adding authentica
 
 ## Milestones
 
-- ✅ **v1.0 MVP** - Phases 1-3 (shipped 2026-01-27)
-- 🚧 **v2.0 User System + Monetization** - Phases 4-9 (in progress)
+- **v1.0 MVP** - Phases 1-3 (shipped 2026-01-27)
+- **v2.0 User System + Monetization** - Phases 4-9 (in progress)
 
 ## Phases
 
 <details>
-<summary>✅ v1.0 MVP (Phases 1-3) - SHIPPED 2026-01-27</summary>
+<summary>v1.0 MVP (Phases 1-3) - SHIPPED 2026-01-27</summary>
 
 ### Phase 1: Foundation
 **Goal**: Project scaffolding and core infrastructure
@@ -34,11 +34,11 @@ Delivered drag-drop image upload (max 5MB), DALL-E 3 AI generation, Facebook/Ins
 
 </details>
 
-### 🚧 v2.0 User System + Monetization (In Progress)
+### v2.0 User System + Monetization (In Progress)
 
 **Milestone Goal:** Transform anonymous tool into SaaS with user accounts, post history, and Stripe payments.
 
-#### Phase 4: Database Foundation ✓
+#### Phase 4: Database Foundation
 
 **Goal**: Establish database infrastructure for all user-specific features
 
@@ -49,11 +49,11 @@ Delivered drag-drop image upload (max 5MB), DALL-E 3 AI generation, Facebook/Ins
 **Requirements**: Database schema design (foundational work)
 
 **Success Criteria** (verified):
-1. ✓ Supabase Postgres database provisioned and connected
-2. ✓ Drizzle ORM configured with postgres.js driver
-3. ✓ Database schema defined for users, posts, subscriptions, and usage_limits tables
-4. ✓ Schema pushed via drizzle-kit push
-5. ✓ Database queries work from API routes (/api/db-health verified)
+1. Supabase Postgres database provisioned and connected
+2. Drizzle ORM configured with postgres.js driver
+3. Database schema defined for users, posts, subscriptions, and usage_limits tables
+4. Schema pushed via drizzle-kit push
+5. Database queries work from API routes (/api/db-health verified)
 
 **Plans**: 2 plans (complete)
 
@@ -67,25 +67,29 @@ Plans:
 
 **Depends on**: Phase 4 (database must exist to store user records)
 
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07, AUTH-08, AUTH-09
+**Implementation**: Supabase Auth (changed from Clerk for unified Supabase stack)
 
-**Success Criteria** (what must be TRUE):
-1. User can sign up with Google OAuth or email/password
-2. User can log in with Google OAuth, email/password, or magic link (passwordless)
-3. User receives email verification after signup
-4. User can reset password via email link
-5. User session persists across browser refresh without re-login
-6. User can log out from any page
-7. Anonymous users can still access generation workflow without authentication
-8. Clerk user data syncs to database users table via webhooks
+**Status**: Complete (2026-01-31)
 
-**Plans**: 4 plans in 3 waves
+**Success Criteria** (all TRUE):
+1. User can sign up with email/password
+2. User can log in with email/password
+3. User can log in with Google OAuth (configured in Supabase)
+4. User can log in with magic link (passwordless)
+5. User session persists across browser refresh
+6. User can log out from any page (AuthHeader integrated)
+7. Anonymous users can still access generation workflow
+8. Auth user syncs to database users table
 
-Plans:
-- [ ] 05-01-PLAN.md - Install Clerk SDK, configure middleware and ClerkProvider
-- [ ] 05-02-PLAN.md - Create sign-in and sign-up pages with Clerk components
-- [ ] 05-03-PLAN.md - Create webhook handler for Supabase user sync
-- [ ] 05-04-PLAN.md - Add AuthHeader component and integrate into main page
+**Delivered:**
+- Supabase SSR setup (lib/supabase/client.ts, server.ts, middleware.ts)
+- Sign-in page with Google OAuth, email/password, magic link (/sign-in)
+- Sign-up page with Google OAuth, email/password (/sign-up)
+- OAuth callback handler with user sync (/auth/callback)
+- Session middleware for Next.js 15
+- AuthHeader component integrated into main page
+- Auto-login after registration (dev mode)
+- User sync API (lib/auth/sync-user.ts, /api/auth/sync)
 
 #### Phase 6: Post History
 
@@ -96,7 +100,7 @@ Plans:
 **Requirements**: HIST-01, HIST-02, HIST-03, HIST-04, HIST-05, HIST-06, HIST-07, HIST-08
 
 **Success Criteria** (what must be TRUE):
-1. Generated posts automatically save to database with text, image URL, and generation config
+1. Generated posts save to database with text, image URL, and generation config
 2. User can view list of saved posts with date, thumbnail, and text preview
 3. User can view individual post details with full text and image
 4. User can copy text from saved post with one click
@@ -104,10 +108,14 @@ Plans:
 6. User can search posts by text content
 7. User can mark posts as favorites and view favorites separately
 
-**Plans**: TBD
+**Plans**: 5 plans in 4 waves
 
 Plans:
-- [ ] 06-01: TBD during planning
+- [ ] 06-01-PLAN.md - Storage helpers and post query functions
+- [ ] 06-02-PLAN.md - Posts API routes (save, list, detail, favorite, delete)
+- [ ] 06-03-PLAN.md - SavePostButton integration on main page
+- [ ] 06-04-PLAN.md - History list and detail pages with infinite scroll
+- [ ] 06-05-PLAN.md - Search and favorites functionality
 
 #### Phase 7: Usage Limits
 
@@ -177,14 +185,14 @@ Plans:
 **Execution Order:**
 Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 1. Foundation | v1.0 | 3/3 | Complete | 2026-01-27 |
-| 2. Core Generator | v1.0 | 2/2 | Complete | 2026-01-27 |
-| 3. Image & Preview | v1.0 | 3/3 | Complete | 2026-01-27 |
-| 4. Database Foundation | v2.0 | 2/2 | Complete | 2026-01-29 |
-| 5. Authentication | v2.0 | 0/4 | Ready | - |
-| 6. Post History | v2.0 | 0/TBD | Not started | - |
-| 7. Usage Limits | v2.0 | 0/TBD | Not started | - |
-| 8. Payments | v2.0 | 0/TBD | Not started | - |
-| 9. Dashboard & Polish | v2.0 | 0/TBD | Not started | - |
+| Phase | Milestone | Status | Completed |
+|-------|-----------|--------|-----------|
+| 1. Foundation | v1.0 | Complete | 2026-01-27 |
+| 2. Core Generator | v1.0 | Complete | 2026-01-27 |
+| 3. Image & Preview | v1.0 | Complete | 2026-01-27 |
+| 4. Database Foundation | v2.0 | Complete | 2026-01-29 |
+| 5. Authentication | v2.0 | Complete | 2026-01-31 |
+| 6. Post History | v2.0 | Not started | - |
+| 7. Usage Limits | v2.0 | Not started | - |
+| 8. Payments | v2.0 | Not started | - |
+| 9. Dashboard & Polish | v2.0 | Not started | - |
