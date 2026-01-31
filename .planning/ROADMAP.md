@@ -140,14 +140,17 @@ Plans:
 **Success Criteria** (what must be TRUE):
 1. Free users limited to 3 generations per day
 2. Usage counter displays "X/3 used today" in UI
-3. Usage resets daily at midnight UTC automatically
-4. Generate button disabled when daily limit reached
-5. Upgrade prompt modal shown when limit reached with clear subscription offer
+3. Usage resets daily at midnight in user's timezone automatically
+4. Generate button hidden when daily limit reached
+5. Upgrade CTA shown when limit reached with clear subscription offer
 
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 07-01: TBD during planning
+- [ ] 07-01-PLAN.md - Usage API and query helpers (backend)
+- [ ] 07-02-PLAN.md - Usage counter UI component (frontend)
+- [ ] 07-03-PLAN.md - Upgrade CTA and generate API quota check
+- [ ] 07-04-PLAN.md - Main page integration
 
 #### Phase 8: Payments
 
