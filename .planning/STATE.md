@@ -6,16 +6,18 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Users can generate a professional, industry-appropriate social media post in under 60 seconds without any account creation or complex setup.
 
-**Current focus:** Phase 5 - Authentication
+**Current focus:** Phase 6 - Post History (ready to start)
 
 ## Current Position
 
-Phase: 5 of 9 (Authentication)
-Plan: 1 of TBD in current phase
-Status: In progress
-Last activity: 2026-01-29 — Completed 05-02-PLAN.md (Authentication UI Pages)
+Phase: 6 of 9 (Post History) — In progress
+Plan: 1 of 4 complete (Storage and Query Helpers)
+Status: Phase 6 in progress
+Last activity: 2026-01-31 — Completed 06-01-PLAN.md (Storage and Query Helpers)
 
-Progress: [████░░░░░░] 42% (v1.0 complete, Phase 4 complete, Phase 5 started)
+Progress: [███████░░░] 70% (v1.0 complete, Phase 4-5 complete, Phase 6 started)
+
+**Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
 ## Performance Metrics
 
@@ -27,11 +29,11 @@ Progress: [████░░░░░░] 42% (v1.0 complete, Phase 4 complete,
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 3
+- Total plans completed: 4
 - Total phases: 6 (Phases 4-9)
-- Phases completed: 1 (Phase 4)
-- Average plan duration: 7.8 minutes
-- Status: Phase 5 in progress (Plan 02 complete)
+- Phases completed: 2 (Phase 4-5)
+- Average plan duration: 6.5 minutes
+- Status: Phase 6 in progress (Plan 01 complete)
 
 ## Accumulated Context
 
@@ -47,7 +49,7 @@ Recent decisions affecting current work:
 - DALL-E 3 over Flux (same OpenAI API, simpler integration)
 
 **v2.0 stack decisions (from research):**
-- Clerk for authentication (10K MAU free tier, Next.js 15 compatible)
+- **Supabase Auth** for authentication (changed from Clerk - simpler integration with existing Supabase DB)
 - Supabase Postgres + Drizzle ORM (user choice, EU West region)
 - Stripe for payments (subscriptions + credits)
 
@@ -56,10 +58,18 @@ Recent decisions affecting current work:
 - Soft delete with partial unique indexes (email reuse after deletion)
 - Index all foreign key columns (query performance)
 - JSONB for generation config (flexible without schema migrations)
-n**Phase 5 (Authentication UI) decisions:**
-- AUTH-UI-01: Use Clerk pre-built components over custom forms (handles complex flows automatically)
-- AUTH-UI-02: Customize Clerk appearance with Tailwind classes (match app's blue/gray theme)
-- AUTH-UI-03: Use catch-all routes [[...sign-in]] for Clerk's multi-step flows (password reset, 2FA)
+
+**Phase 5 (Authentication) decisions:**
+- AUTH-01: Supabase Auth over Clerk (unified with existing Supabase DB, no separate service)
+- AUTH-02: Custom sign-in/sign-up forms with Lithuanian UI (full control over UX)
+- AUTH-03: Supabase SSR with @supabase/ssr (proper cookie handling for Next.js 15)
+- AUTH-04: Disabled email confirmation for development (Supabase rate limits)
+- AUTH-05: Auto-login after registration (better UX, skip email verification step)
+
+**Phase 6 Plan 01 (Storage and Query Helpers) decisions:**
+- STORAGE-01: Service role key for uploads (bypasses RLS, allows server-side uploads on behalf of users)
+- PAGINATION-01: Cursor-based pagination over offset-based (stable pagination, better performance)
+- SEARCH-01: ILIKE for case-insensitive search (simple, sufficient for v2.0)
 
 ### Pending Todos
 
@@ -79,8 +89,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-29 18:35 UTC
-Stopped at: Completed 05-02-PLAN.md (Authentication UI Pages)
+Last session: 2026-01-31 07:57 UTC
+Stopped at: Completed 06-01-PLAN.md (Storage and Query Helpers)
 Resume file: None
 
 Config:
