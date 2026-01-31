@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 ## Current Position
 
-Phase: 6 of 9 (Post History) — In progress
-Plan: 3 of 4 complete (Save Post Button)
-Status: Phase 6 in progress
-Last activity: 2026-01-31 — Completed 06-03-PLAN.md (Save Post Button)
+Phase: 6 of 9 (Post History) — Complete
+Plan: 4 of 4 complete (History UI Pages)
+Status: Phase 6 complete - Ready for Phase 7
+Last activity: 2026-01-31 — Completed 06-04-PLAN.md (History UI Pages)
 
-Progress: [███████░░░] 75% (v1.0 complete, Phase 4-5 complete, Phase 6 in progress)
+Progress: [████████░░] 78% (v1.0 complete, Phases 4-6 complete)
 
 **Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
@@ -29,11 +29,11 @@ Progress: [███████░░░] 75% (v1.0 complete, Phase 4-5 complet
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 6
+- Total plans completed: 7
 - Total phases: 6 (Phases 4-9)
-- Phases completed: 2 (Phase 4-5)
-- Average plan duration: 5.8 minutes
-- Status: Phase 6 in progress (Plans 01-03 complete)
+- Phases completed: 3 (Phases 4-6)
+- Average plan duration: 5.9 minutes
+- Status: Phase 6 complete, ready for Phase 7
 
 ## Accumulated Context
 
@@ -81,6 +81,12 @@ Recent decisions affecting current work:
 - UI-02: Show sign-in prompt for unauthenticated users with generated content
 - UI-03: Map emoji config value: 'no' = false, all others = true
 
+**Phase 6 Plan 04 (History UI Pages) decisions:**
+- UI-04: react-intersection-observer for infinite scroll (simple, performant)
+- UI-05: date-fns with Lithuanian locale for date formatting (i18n support)
+- UI-06: URL searchParams for regenerate flow (shareable URLs, no storage limits)
+- UI-07: Date serialization to ISO strings for Server->Client components (Next.js 15 requirement)
+
 ### Pending Todos
 
 None yet.
@@ -99,8 +105,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 08:15 UTC
-Stopped at: Completed 06-03-PLAN.md (Save Post Button)
+Last session: 2026-01-31 08:17 UTC
+Stopped at: Completed 06-04-PLAN.md (History UI Pages) - Phase 6 complete
 Resume file: None
 
 Config:
