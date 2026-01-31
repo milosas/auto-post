@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 ## Current Position
 
 Phase: 6 of 9 (Post History) — Complete
-Plan: 4 of 4 complete (History UI Pages)
+Plan: 5 of 5 complete (Search and Favorites)
 Status: Phase 6 complete - Ready for Phase 7
-Last activity: 2026-01-31 — Completed 06-04-PLAN.md (History UI Pages)
+Last activity: 2026-01-31 — Completed 06-05-PLAN.md (Search and Favorites)
 
-Progress: [████████░░] 78% (v1.0 complete, Phases 4-6 complete)
+Progress: [████████░░] 80% (v1.0 complete, Phases 4-6 complete)
 
 **Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
@@ -29,10 +29,10 @@ Progress: [████████░░] 78% (v1.0 complete, Phases 4-6 comple
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 7
+- Total plans completed: 8
 - Total phases: 6 (Phases 4-9)
 - Phases completed: 3 (Phases 4-6)
-- Average plan duration: 5.9 minutes
+- Average plan duration: 5.5 minutes
 - Status: Phase 6 complete, ready for Phase 7
 
 ## Accumulated Context
@@ -87,6 +87,11 @@ Recent decisions affecting current work:
 - UI-06: URL searchParams for regenerate flow (shareable URLs, no storage limits)
 - UI-07: Date serialization to ISO strings for Server->Client components (Next.js 15 requirement)
 
+**Phase 6 Plan 05 (Search and Favorites) decisions:**
+- UI-08: URL-based filtering for shareable links (search and favorites params)
+- UI-09: useOptimistic for instant favorite toggle feedback
+- UI-10: 300ms debounce for search to avoid excessive API calls
+
 ### Pending Todos
 
 None yet.
@@ -105,8 +110,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 08:17 UTC
-Stopped at: Completed 06-04-PLAN.md (History UI Pages) - Phase 6 complete
+Last session: 2026-01-31 08:25 UTC
+Stopped at: Completed 06-05-PLAN.md (Search and Favorites) - Phase 6 complete
 Resume file: None
 
 Config:
