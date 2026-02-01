@@ -182,10 +182,14 @@ Plans:
 7. Credits deduct per generation for credit users (atomic decrement)
 8. User can view current credit balance in dashboard
 
-**Plans**: TBD
+**Plans**: 5 plans in 4 waves
 
 Plans:
-- [ ] 08-01: TBD during planning
+- [ ] 08-01-PLAN.md — Stripe SDK setup, config, and webhook_events schema
+- [ ] 08-02-PLAN.md — Stripe API routes (checkout, portal, credits)
+- [ ] 08-03-PLAN.md — Webhook handler with idempotency
+- [ ] 08-04-PLAN.md — Subscription helpers and generate API integration
+- [ ] 08-05-PLAN.md — Pricing page and billing UI components
 
 #### Phase 9: Dashboard & Polish
 
