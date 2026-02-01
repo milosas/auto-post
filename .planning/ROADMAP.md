@@ -137,20 +137,32 @@ Plans:
 
 **Requirements**: USAGE-01, USAGE-02, USAGE-03, USAGE-04, USAGE-05
 
-**Success Criteria** (what must be TRUE):
+**Status**: Complete (2026-02-01)
+
+**Success Criteria** (verified):
 1. Free users limited to 3 generations per day
 2. Usage counter displays "X/3 used today" in UI
 3. Usage resets daily at midnight in user's timezone automatically
 4. Generate button hidden when daily limit reached
 5. Upgrade CTA shown when limit reached with clear subscription offer
 
-**Plans**: 4 plans
+**Delivered:**
+- Timezone-aware usage reset logic (@date-fns/tz TZDate)
+- Usage query helpers with atomic increment (race condition protection)
+- Usage API endpoints (GET status, POST increment)
+- UsageCounter component with color-coded progress bar
+- Countdown timer hook for reset time display
+- UpgradeCTA button with €9/month pricing and benefits tooltip
+- /api/generate quota enforcement (Edge→Node.js runtime migration)
+- Main page conditional rendering (auth gate + limit gate)
+
+**Plans**: 4 plans (complete)
 
 Plans:
-- [ ] 07-01-PLAN.md - Usage API and query helpers (backend)
-- [ ] 07-02-PLAN.md - Usage counter UI component (frontend)
-- [ ] 07-03-PLAN.md - Upgrade CTA and generate API quota check
-- [ ] 07-04-PLAN.md - Main page integration
+- [x] 07-01-PLAN.md - Usage API and query helpers (backend)
+- [x] 07-02-PLAN.md - Usage counter UI component (frontend)
+- [x] 07-03-PLAN.md - Upgrade CTA and generate API quota check
+- [x] 07-04-PLAN.md - Main page integration
 
 #### Phase 8: Payments
 
@@ -208,6 +220,6 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 4. Database Foundation | v2.0 | Complete | 2026-01-29 |
 | 5. Authentication | v2.0 | Complete | 2026-01-31 |
 | 6. Post History | v2.0 | Complete | 2026-01-31 |
-| 7. Usage Limits | v2.0 | Not started | - |
+| 7. Usage Limits | v2.0 | Complete | 2026-02-01 |
 | 8. Payments | v2.0 | Not started | - |
 | 9. Dashboard & Polish | v2.0 | Not started | - |

@@ -36,11 +36,11 @@ Requirements for User System + Monetization milestone. Each maps to roadmap phas
 
 ### Usage & Limits
 
-- [ ] **USAGE-01**: Free users limited to 3 generations per day
-- [ ] **USAGE-02**: Usage counter displays "X/3 used today"
-- [ ] **USAGE-03**: Usage resets daily at midnight UTC
-- [ ] **USAGE-04**: Generate button disabled when daily limit reached
-- [ ] **USAGE-05**: Upgrade prompt modal shown when limit reached
+- [x] **USAGE-01**: Free users limited to 3 generations per day
+- [x] **USAGE-02**: Usage counter displays "X/3 used today"
+- [x] **USAGE-03**: Usage resets daily at midnight in user's timezone (improved from UTC)
+- [x] **USAGE-04**: Generate button hidden when daily limit reached (replaced with upgrade CTA)
+- [x] **USAGE-05**: Upgrade CTA shown when limit reached (inline, not modal)
 
 ### Payments
 
@@ -125,11 +125,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HIST-06 | Phase 6 | Complete |
 | HIST-07 | Phase 6 | Complete |
 | HIST-08 | Phase 6 | Complete |
-| USAGE-01 | Phase 7 | Pending |
-| USAGE-02 | Phase 7 | Pending |
-| USAGE-03 | Phase 7 | Pending |
-| USAGE-04 | Phase 7 | Pending |
-| USAGE-05 | Phase 7 | Pending |
+| USAGE-01 | Phase 7 | Complete |
+| USAGE-02 | Phase 7 | Complete |
+| USAGE-03 | Phase 7 | Complete |
+| USAGE-04 | Phase 7 | Complete |
+| USAGE-05 | Phase 7 | Complete |
 | PAY-01 | Phase 8 | Pending |
 | PAY-02 | Phase 8 | Pending |
 | PAY-03 | Phase 8 | Pending |
