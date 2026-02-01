@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 ## Current Position
 
 Phase: 8 of 9 (Payments) — In progress
-Plan: 2 of 5 complete (Stripe API Routes)
+Plan: 3 of 5 complete (Stripe Webhook Handler)
 Status: Phase 8 in progress
-Last activity: 2026-02-01 — Completed 08-02-PLAN.md (Stripe API Routes)
+Last activity: 2026-02-01 — Completed 08-03-PLAN.md (Stripe Webhook Handler)
 
-Progress: [█████████░] 91% (v1.0 complete, Phases 4-7 complete, Phase 8 plan 2/5)
+Progress: [█████████░] 92% (v1.0 complete, Phases 4-7 complete, Phase 8 plan 3/5)
 
 **Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
@@ -29,11 +29,11 @@ Progress: [█████████░] 91% (v1.0 complete, Phases 4-7 comple
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 17
+- Total plans completed: 18
 - Total phases: 6 (Phases 4-9)
 - Phases completed: 4 (Phases 4-7)
-- Average plan duration: 5.1 minutes
-- Status: Phase 8 plan 2/5 complete (Stripe API Routes)
+- Average plan duration: 5.0 minutes
+- Status: Phase 8 plan 3/5 complete (Stripe Webhook Handler)
 
 ## Accumulated Context
 
@@ -124,6 +124,12 @@ Recent decisions affecting current work:
 - API-CHECKOUT-02: Metadata correlation (all checkout sessions include userId and relevant IDs for webhook handling)
 - API-CHECKOUT-03: mode: 'subscription' for recurring plans, mode: 'payment' for one-time credit purchases
 
+**Phase 8 Plan 03 (Stripe Webhook Handler) decisions:**
+- WEBHOOK-01: Idempotency check before processing (query webhookEvents table to prevent duplicate event handling)
+- WEBHOOK-02: Atomic credit increment using sql template (prevents race conditions when multiple events update credits)
+- WEBHOOK-03: Upsert pattern for subscription updates (events may arrive out of order; onConflictDoUpdate ensures correct final state)
+- WEBHOOK-04: Create 'free' subscription record for credit-only users (unified credit tracking for all users)
+
 ### Pending Todos
 
 None yet.
@@ -138,13 +144,13 @@ None yet.
 **v2.0 considerations:**
 - **Phase 5:** OAuth approval delays - Google verification takes 3-7 days, Facebook requires 6+ resubmissions. Start application process 3 weeks before launch.
 - **Phase 6:** DALL-E URL expiration - Image URLs may expire after 30-90 days. Verify expiration policy and implement Cloudflare R2 storage if needed.
-- **Phase 8:** Stripe webhook idempotency - Research flags this as needing deeper investigation during planning (multiple implementation patterns exist).
 - **Phase 8 Plan 02:** Customer Portal must be configured in Stripe Dashboard (Settings → Billing → Customer Portal → Activate) before /api/stripe/portal will work.
+- **Phase 8 Plan 03:** Webhook endpoint URL must be added to Stripe Dashboard and STRIPE_WEBHOOK_SECRET env var set before production deployment.
 
 ## Session Continuity
 
-Last session: 2026-02-01 15:09 UTC
-Stopped at: Completed 08-02-PLAN.md (Stripe API Routes) - Phase 8 plan 2/5 complete
+Last session: 2026-02-01 15:10 UTC
+Stopped at: Completed 08-03-PLAN.md (Stripe Webhook Handler) - Phase 8 plan 3/5 complete
 Resume file: None
 
 Config:
