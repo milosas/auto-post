@@ -6,16 +6,16 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Users can generate a professional, industry-appropriate social media post in under 60 seconds without any account creation or complex setup.
 
-**Current focus:** Phase 7 - Usage Limits (ready to plan)
+**Current focus:** Phase 7 - Usage Limits (complete)
 
 ## Current Position
 
-Phase: 7 of 9 (Usage Limits) — In Progress
-Plan: 3 of 4 complete (Upgrade CTA and Quota Enforcement)
-Status: Phase 7 in progress
-Last activity: 2026-02-01 — Completed 07-03-PLAN.md (Upgrade CTA and Quota Enforcement)
+Phase: 7 of 9 (Usage Limits) — Complete
+Plan: 4 of 4 complete (Main Page Limit Integration)
+Status: Phase 7 complete, ready for Phase 8
+Last activity: 2026-02-01 — Completed 07-04-PLAN.md (Main Page Limit Integration)
 
-Progress: [████████░░] 84% (v1.0 complete, Phases 4-6 complete, Phase 7 nearly complete)
+Progress: [█████████░] 88% (v1.0 complete, Phases 4-7 complete)
 
 **Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
@@ -29,11 +29,11 @@ Progress: [████████░░] 84% (v1.0 complete, Phases 4-6 comple
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 11
+- Total plans completed: 15
 - Total phases: 6 (Phases 4-9)
-- Phases completed: 3 (Phases 4-6)
-- Average plan duration: 4.9 minutes
-- Status: Phase 7 plan 03 complete (Upgrade CTA and Quota Enforcement)
+- Phases completed: 4 (Phases 4-7)
+- Average plan duration: 5.2 minutes
+- Status: Phase 7 complete (Usage Limits)
 
 ## Accumulated Context
 
@@ -98,16 +98,21 @@ Recent decisions affecting current work:
 - RACE-01: Atomic increment with SQL WHERE constraint - prevents race conditions
 - API-01: X-Timezone header pattern - server needs user timezone for reset calculation
 
-**Phase 7 Plan 03 (Upgrade CTA and Quota Enforcement) decisions:**
-- RUNTIME-01: Switch /api/generate from Edge to Node.js runtime - Edge-to-Node fetch loses Supabase session, direct Drizzle access simpler
-- AUTH-06: Authentication required before generation - prevents anonymous abuse, enforces usage limits
-- UX-01: Upgrade CTA with gradient button and benefits tooltip - €9/month price, clear visual differentiation
-
 **Phase 7 Plan 02 (Usage Counter UI) decisions:**
 - UI-COLOR: Color progression green→blue→yellow→red based on usage percentage (visual warning system)
 - UI-COUNTDOWN: Show countdown timer only when limit reached (avoid UI clutter)
 - UI-FETCH: Fetch usage on mount and auth state change (real-time quota visibility)
 - UI-LITHUANIAN: Lithuanian text for all user-facing strings (maintain consistency)
+
+**Phase 7 Plan 03 (Upgrade CTA and Quota Enforcement) decisions:**
+- RUNTIME-01: Switch /api/generate from Edge to Node.js runtime - Edge-to-Node fetch loses Supabase session, direct Drizzle access simpler
+- AUTH-06: Authentication required before generation - prevents anonymous abuse, enforces usage limits
+- UX-01: Upgrade CTA with gradient button and benefits tooltip - €9/month price, clear visual differentiation
+
+**Phase 7 Plan 04 (Main Page Limit Integration) decisions:**
+- UI-REFETCH: Refetch usage after each generation (not optimistic update) - ensures UI stays in sync with server state
+- UI-LOADING: Show skeleton button during usage fetch - prevents flash of wrong state
+- UI-AUTH-GATE: Disabled button with clear sign-in links for unauthenticated users - conversion optimization
 
 ### Pending Todos
 
@@ -127,8 +132,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01 05:10 UTC
-Stopped at: Completed 07-03-PLAN.md (Upgrade CTA and Quota Enforcement)
+Last session: 2026-02-01 05:24 UTC
+Stopped at: Completed 07-04-PLAN.md (Main Page Limit Integration) - Phase 7 complete
 Resume file: None
 
 Config:
