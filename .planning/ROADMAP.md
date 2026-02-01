@@ -182,14 +182,21 @@ Plans:
 7. Credits deduct per generation for credit users (atomic decrement)
 8. User can view current credit balance in dashboard
 
-**Plans**: 5 plans in 4 waves
+**Status**: Complete (2026-02-01)
+
+**Delivered:**
+- Stripe SDK setup with webhook_events schema
+- Stripe API routes (checkout, portal, credits)
+- Webhook handler with idempotency
+- Subscription helpers and generate API integration
+- Pricing page and billing UI components
 
 Plans:
-- [ ] 08-01-PLAN.md — Stripe SDK setup, config, and webhook_events schema
-- [ ] 08-02-PLAN.md — Stripe API routes (checkout, portal, credits)
-- [ ] 08-03-PLAN.md — Webhook handler with idempotency
-- [ ] 08-04-PLAN.md — Subscription helpers and generate API integration
-- [ ] 08-05-PLAN.md — Pricing page and billing UI components
+- [x] 08-01-PLAN.md — Stripe SDK setup, config, and webhook_events schema
+- [x] 08-02-PLAN.md — Stripe API routes (checkout, portal, credits)
+- [x] 08-03-PLAN.md — Webhook handler with idempotency
+- [x] 08-04-PLAN.md — Subscription helpers and generate API integration
+- [x] 08-05-PLAN.md — Pricing page and billing UI components
 
 #### Phase 9: Dashboard & Polish
 
@@ -225,5 +232,5 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 5. Authentication | v2.0 | Complete | 2026-01-31 |
 | 6. Post History | v2.0 | Complete | 2026-01-31 |
 | 7. Usage Limits | v2.0 | Complete | 2026-02-01 |
-| 8. Payments | v2.0 | Not started | - |
+| 8. Payments | v2.0 | Complete | 2026-02-01 |
 | 9. Dashboard & Polish | v2.0 | Not started | - |

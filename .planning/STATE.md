@@ -6,16 +6,16 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Users can generate a professional, industry-appropriate social media post in under 60 seconds without any account creation or complex setup.
 
-**Current focus:** Phase 8 - Payments (in progress)
+**Current focus:** Phase 9 - Dashboard & Polish (next)
 
 ## Current Position
 
-Phase: 8 of 9 (Payments) — In progress
-Plan: 4 of 5 complete (Generation Integration)
-Status: Phase 8 in progress
-Last activity: 2026-02-01 — Completed 08-04-PLAN.md (Generation Integration)
+Phase: 8 of 9 (Payments) — Complete
+Plan: 5 of 5 complete (Pricing Page & Billing UI)
+Status: Phase 8 complete, ready for Phase 9
+Last activity: 2026-02-01 — Completed 08-05-PLAN.md (Pricing Page & Billing UI)
 
-Progress: [█████████░] 94% (v1.0 complete, Phases 4-7 complete, Phase 8 plan 4/5)
+Progress: [█████████░] 97% (v1.0 complete, Phases 4-8 complete, Phase 9 pending)
 
 **Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
@@ -29,11 +29,11 @@ Progress: [█████████░] 94% (v1.0 complete, Phases 4-7 comple
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 19
+- Total plans completed: 20
 - Total phases: 6 (Phases 4-9)
-- Phases completed: 4 (Phases 4-7)
-- Average plan duration: 6.3 minutes
-- Status: Phase 8 plan 4/5 complete (Generation Integration)
+- Phases completed: 5 (Phases 4-8)
+- Average plan duration: 6.2 minutes
+- Status: Phase 8 complete, Phase 9 next
 
 ## Accumulated Context
 
@@ -136,6 +136,12 @@ Recent decisions affecting current work:
 - ACCESS-03: Atomic credit deduction via SQL WHERE clause prevents race conditions, no application-level locks needed
 - ACCESS-04: Subscription/credit users bypass daily limit from Phase 7 (paid users not subject to free tier restrictions)
 
+**Phase 8 Plan 05 (Pricing Page & Billing UI) decisions:**
+- UI-PRICING-01: NEXT_PUBLIC_ env vars for client-side price IDs (allows dynamic pricing display)
+- UI-PRICING-02: Annual discount badge "2 mėnesiai nemokamai" for conversion optimization
+- UI-PRICING-03: Pro plan highlighted as "Populiariausias" for social proof
+- UI-PRICING-04: Credit packages show per-credit price to highlight bulk discounts
+
 ### Pending Todos
 
 None yet.
@@ -155,8 +161,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01 17:17 UTC
-Stopped at: Completed 08-04-PLAN.md (Generation Integration) - Phase 8 plan 4/5 complete
+Last session: 2026-02-01 18:00 UTC
+Stopped at: Completed 08-05-PLAN.md (Pricing Page & Billing UI) - Phase 8 complete
 Resume file: None
 
 Config:
