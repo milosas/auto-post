@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 ## Current Position
 
 Phase: 8 of 9 (Payments) — In progress
-Plan: 3 of 5 complete (Stripe Webhook Handler)
+Plan: 4 of 5 complete (Generation Integration)
 Status: Phase 8 in progress
-Last activity: 2026-02-01 — Completed 08-03-PLAN.md (Stripe Webhook Handler)
+Last activity: 2026-02-01 — Completed 08-04-PLAN.md (Generation Integration)
 
-Progress: [█████████░] 92% (v1.0 complete, Phases 4-7 complete, Phase 8 plan 3/5)
+Progress: [█████████░] 94% (v1.0 complete, Phases 4-7 complete, Phase 8 plan 4/5)
 
 **Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
@@ -29,11 +29,11 @@ Progress: [█████████░] 92% (v1.0 complete, Phases 4-7 comple
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 18
+- Total plans completed: 19
 - Total phases: 6 (Phases 4-9)
 - Phases completed: 4 (Phases 4-7)
-- Average plan duration: 5.0 minutes
-- Status: Phase 8 plan 3/5 complete (Stripe Webhook Handler)
+- Average plan duration: 6.3 minutes
+- Status: Phase 8 plan 4/5 complete (Generation Integration)
 
 ## Accumulated Context
 
@@ -130,6 +130,12 @@ Recent decisions affecting current work:
 - WEBHOOK-03: Upsert pattern for subscription updates (events may arrive out of order; onConflictDoUpdate ensures correct final state)
 - WEBHOOK-04: Create 'free' subscription record for credit-only users (unified credit tracking for all users)
 
+**Phase 8 Plan 04 (Generation Integration) decisions:**
+- ACCESS-01: Tiered access priority order (subscription > credits > free) ensures correct tier enforcement
+- ACCESS-02: Monthly quota based on Stripe billing period (not calendar month) for consistent user experience
+- ACCESS-03: Atomic credit deduction via SQL WHERE clause prevents race conditions, no application-level locks needed
+- ACCESS-04: Subscription/credit users bypass daily limit from Phase 7 (paid users not subject to free tier restrictions)
+
 ### Pending Todos
 
 None yet.
@@ -149,8 +155,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01 15:10 UTC
-Stopped at: Completed 08-03-PLAN.md (Stripe Webhook Handler) - Phase 8 plan 3/5 complete
+Last session: 2026-02-01 17:17 UTC
+Stopped at: Completed 08-04-PLAN.md (Generation Integration) - Phase 8 plan 4/5 complete
 Resume file: None
 
 Config:
