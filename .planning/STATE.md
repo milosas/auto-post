@@ -29,11 +29,11 @@ Progress: [████████░░] 84% (v1.0 complete, Phases 4-6 comple
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 10
+- Total plans completed: 11
 - Total phases: 6 (Phases 4-9)
 - Phases completed: 3 (Phases 4-6)
-- Average plan duration: 5.1 minutes
-- Status: Phase 7 plan 02 complete (Usage Counter UI)
+- Average plan duration: 4.9 minutes
+- Status: Phase 7 plan 03 complete (Upgrade CTA and Quota Enforcement)
 
 ## Accumulated Context
 
@@ -98,6 +98,11 @@ Recent decisions affecting current work:
 - RACE-01: Atomic increment with SQL WHERE constraint - prevents race conditions
 - API-01: X-Timezone header pattern - server needs user timezone for reset calculation
 
+**Phase 7 Plan 03 (Upgrade CTA and Quota Enforcement) decisions:**
+- RUNTIME-01: Switch /api/generate from Edge to Node.js runtime - Edge-to-Node fetch loses Supabase session, direct Drizzle access simpler
+- AUTH-06: Authentication required before generation - prevents anonymous abuse, enforces usage limits
+- UX-01: Upgrade CTA with gradient button and benefits tooltip - €9/month price, clear visual differentiation
+
 **Phase 7 Plan 02 (Usage Counter UI) decisions:**
 - UI-COLOR: Color progression green→blue→yellow→red based on usage percentage (visual warning system)
 - UI-COUNTDOWN: Show countdown timer only when limit reached (avoid UI clutter)
@@ -123,7 +128,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-01 05:10 UTC
-Stopped at: Completed 07-02-PLAN.md (Usage Counter UI)
+Stopped at: Completed 07-03-PLAN.md (Upgrade CTA and Quota Enforcement)
 Resume file: None
 
 Config:
