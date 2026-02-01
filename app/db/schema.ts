@@ -2,11 +2,11 @@ import { pgTable, integer, text, timestamp, jsonb, index, uniqueIndex } from 'dr
 import { relations, sql } from 'drizzle-orm';
 
 // ============================================
-// USERS TABLE (Clerk webhook sync)
+// USERS TABLE (Supabase Auth sync)
 // ============================================
 export const users = pgTable('users', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
-  clerkId: text('clerk_id').notNull(),
+  authId: text('auth_id').notNull(), // Supabase auth.users.id (UUID)
   email: text('email').notNull(),
   name: text('name'),
   imageUrl: text('image_url'),
@@ -16,7 +16,7 @@ export const users = pgTable('users', {
 }, (table) => [
   // Partial unique: email unique only for non-deleted users (allows reuse after soft delete)
   uniqueIndex('users_email_unique').on(table.email).where(sql`${table.deletedAt} IS NULL`),
-  uniqueIndex('users_clerk_id_unique').on(table.clerkId),
+  uniqueIndex('users_auth_id_unique').on(table.authId),
   index('users_deleted_at_idx').on(table.deletedAt),
 ]);
 
@@ -84,6 +84,19 @@ export const subscriptions = pgTable('subscriptions', {
   uniqueIndex('subscriptions_stripe_customer_unique').on(table.stripeCustomerId),
   uniqueIndex('subscriptions_stripe_sub_unique').on(table.stripeSubscriptionId),
   index('subscriptions_status_idx').on(table.status),
+]);
+
+// ============================================
+// WEBHOOK EVENTS TABLE (Stripe idempotency)
+// ============================================
+export const webhookEvents = pgTable('webhook_events', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  stripeEventId: text('stripe_event_id').notNull(),
+  eventType: text('event_type').notNull(),
+  processedAt: timestamp('processed_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('webhook_events_stripe_event_id_unique').on(table.stripeEventId),
+  index('webhook_events_event_type_idx').on(table.eventType),
 ]);
 
 // ============================================
