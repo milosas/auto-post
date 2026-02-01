@@ -12,6 +12,7 @@ import { SocialPreview } from './components/SocialPreview';
 import { DownloadButton } from './components/DownloadButton';
 import { GenerationOptions } from './components/GenerationOptions';
 import { SavePostButton } from './components/SavePostButton';
+import { UpgradeCTA } from './components/UpgradeCTA';
 import { useImagePreview } from './lib/image-utils';
 import AuthHeader from './components/AuthHeader';
 import { INDUSTRIES, getPlaceholderForIndustry } from './lib/industries';
@@ -39,12 +40,30 @@ export default function HomePage() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [usage, setUsage] = useState<{
+    used: number;
+    limit: number;
+    resetAt: string;
+  } | null>(null);
+  const [usageLoading, setUsageLoading] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
   // Image preview from uploaded file
   const uploadedImagePreview = useImagePreview(imageFile);
   const displayImageUrl = imageSource === 'upload' ? uploadedImagePreview : imageUrl;
+
+  // Helper to get timezone
+  const getTimezone = () => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  };
+
+  // Check if limit reached
+  const isLimitReached = usage && usage.used >= usage.limit;
 
   // Pre-fill form fields from URL searchParams (for regenerate flow)
   useEffect(() => {
@@ -77,12 +96,32 @@ export default function HomePage() {
     }
   }, [searchParams]);
 
-  // Check authentication status on mount
+  // Check authentication status and fetch usage on mount
   useEffect(() => {
     const checkUser = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+
+      // Fetch usage for authenticated users
+      if (user) {
+        setUsageLoading(true);
+        try {
+          const response = await fetch('/api/usage', {
+            headers: { 'X-Timezone': getTimezone() },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setUsage(data);
+          }
+        } catch (error) {
+          console.error('Failed to fetch usage:', error);
+        } finally {
+          setUsageLoading(false);
+        }
+      } else {
+        setUsageLoading(false);
+      }
     };
     checkUser();
   }, []);
@@ -167,6 +206,19 @@ export default function HomePage() {
 
             const chunk = decoder.decode(value, { stream: true });
             setGeneratedText((prev) => prev + chunk);
+          }
+
+          // Refetch usage after successful generation
+          try {
+            const usageResponse = await fetch('/api/usage', {
+              headers: { 'X-Timezone': getTimezone() },
+            });
+            if (usageResponse.ok) {
+              const usageData = await usageResponse.json();
+              setUsage(usageData);
+            }
+          } catch (usageError) {
+            console.error('Failed to refetch usage:', usageError);
           }
         } catch (err) {
           if (err instanceof Error && err.name === 'AbortError') {
@@ -279,6 +331,19 @@ export default function HomePage() {
       }
 
       toast.success('Įrašas sugeneruotas');
+
+      // Refetch usage after successful regeneration
+      try {
+        const usageResponse = await fetch('/api/usage', {
+          headers: { 'X-Timezone': getTimezone() },
+        });
+        if (usageResponse.ok) {
+          const usageData = await usageResponse.json();
+          setUsage(usageData);
+        }
+      } catch (usageError) {
+        console.error('Failed to refetch usage:', usageError);
+      }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         toast.error('Generavimo klaida');
@@ -457,13 +522,50 @@ export default function HomePage() {
 
         {/* Generate Button */}
         <section className="mb-6">
-          <button
-            onClick={handleGenerate}
-            disabled={isLoading || isGeneratingImage}
-            className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {isLoading || isGeneratingImage ? 'Generuojama...' : 'Generuoti įrašą'}
-          </button>
+          {usageLoading ? (
+            // Loading state: show skeleton/disabled button
+            <button
+              disabled
+              className="w-full py-3 px-4 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed animate-pulse"
+            >
+              Kraunama...
+            </button>
+          ) : !user ? (
+            // Unauthenticated: Show sign-in prompt
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  toast.error('Prisijunkite, kad galėtumėte generuoti įrašus');
+                }}
+                className="w-full py-3 px-4 bg-gray-400 text-white rounded-lg font-medium cursor-not-allowed"
+              >
+                Generuoti įrašą
+              </button>
+              <p className="text-center text-sm text-gray-600">
+                <a href="/sign-in" className="text-blue-600 hover:underline">Prisijunkite</a>
+                {' '}arba{' '}
+                <a href="/sign-up" className="text-blue-600 hover:underline">užsiregistruokite</a>
+                {' '}kad galėtumėte generuoti įrašus
+              </p>
+            </div>
+          ) : isLimitReached ? (
+            // Authenticated but limit reached: Show upgrade CTA
+            <div className="space-y-3">
+              <UpgradeCTA resetAt={usage?.resetAt} />
+              <p className="text-center text-sm text-gray-500">
+                Dienos limitas pasiektas ({usage?.used}/{usage?.limit})
+              </p>
+            </div>
+          ) : (
+            // Authenticated and under limit: Show generate button
+            <button
+              onClick={handleGenerate}
+              disabled={isLoading || isGeneratingImage}
+              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoading || isGeneratingImage ? 'Generuojama...' : 'Generuoti įrašą'}
+            </button>
+          )}
         </section>
 
         {/* Generated Text Display */}
