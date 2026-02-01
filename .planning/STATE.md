@@ -6,16 +6,16 @@ See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Users can generate a professional, industry-appropriate social media post in under 60 seconds without any account creation or complex setup.
 
-**Current focus:** Phase 7 - Usage Limits (complete)
+**Current focus:** Phase 8 - Payments (in progress)
 
 ## Current Position
 
-Phase: 7 of 9 (Usage Limits) — Complete
-Plan: 4 of 4 complete (Main Page Limit Integration)
-Status: Phase 7 complete, ready for Phase 8
-Last activity: 2026-02-01 — Completed 07-04-PLAN.md (Main Page Limit Integration)
+Phase: 8 of 9 (Payments) — In progress
+Plan: 1 of 5 complete (Stripe Foundation)
+Status: Phase 8 started
+Last activity: 2026-02-01 — Completed 08-01-PLAN.md (Stripe Foundation)
 
-Progress: [█████████░] 88% (v1.0 complete, Phases 4-7 complete)
+Progress: [█████████░] 90% (v1.0 complete, Phases 4-7 complete, Phase 8 plan 1/5)
 
 **Note:** Phase 5 implemented with Supabase Auth instead of Clerk (simpler integration).
 
@@ -29,11 +29,11 @@ Progress: [█████████░] 88% (v1.0 complete, Phases 4-7 comple
 - Timeline: 3 days (2026-01-25 → 2026-01-27)
 
 **v2.0 Milestone (In Progress):**
-- Total plans completed: 15
+- Total plans completed: 16
 - Total phases: 6 (Phases 4-9)
 - Phases completed: 4 (Phases 4-7)
-- Average plan duration: 5.2 minutes
-- Status: Phase 7 complete (Usage Limits)
+- Average plan duration: 5.3 minutes
+- Status: Phase 8 plan 1/5 complete (Stripe Foundation)
 
 ## Accumulated Context
 
@@ -114,6 +114,11 @@ Recent decisions affecting current work:
 - UI-LOADING: Show skeleton button during usage fetch - prevents flash of wrong state
 - UI-AUTH-GATE: Disabled button with clear sign-in links for unauthenticated users - conversion optimization
 
+**Phase 8 Plan 01 (Stripe Foundation) decisions:**
+- STRIPE-01: API version 2026-01-28.clover (latest supported by stripe@20.3.0 SDK)
+- STRIPE-02: Price IDs from environment variables for flexibility across dev/staging/prod environments
+- STRIPE-03: Installed pg driver for direct SQL execution (drizzle-kit push had constraint parsing bug)
+
 ### Pending Todos
 
 None yet.
@@ -132,8 +137,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01 05:24 UTC
-Stopped at: Completed 07-04-PLAN.md (Main Page Limit Integration) - Phase 7 complete
+Last session: 2026-02-01 08:09 UTC
+Stopped at: Completed 08-01-PLAN.md (Stripe Foundation) - Phase 8 plan 1/5 complete
 Resume file: None
 
 Config:
