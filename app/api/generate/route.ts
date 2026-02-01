@@ -7,6 +7,7 @@ import { db } from '@/app/db';
 import { users } from '@/app/db/schema';
 import { eq } from 'drizzle-orm';
 import { checkAndIncrementUsage } from '@/lib/usage/queries';
+import { getUserAccess, deductCredit } from '@/lib/stripe/subscriptions';
 
 // Node.js Runtime for direct Drizzle access (streaming still works)
 export const runtime = 'nodejs';
@@ -439,21 +440,60 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Check and increment usage quota
+    // 4. Check user access level (subscription > credits > free)
     const timezone = request.headers.get('X-Timezone') || 'UTC';
-    const usageResult = await checkAndIncrementUsage(dbUser.id, timezone);
+    const access = await getUserAccess(dbUser.id);
 
-    if (!usageResult.allowed) {
-      return Response.json(
-        {
-          error: 'quota_exceeded',
-          message: 'Dienos limitas pasiektas. Atnaujinkite planą arba palaukite iki rytojaus.',
-          used: usageResult.used,
-          limit: usageResult.limit,
-          resetAt: usageResult.resetAt?.toISOString()
-        },
-        { status: 429 }
-      );
+    if (access.type === 'subscription') {
+      if (access.unlimited) {
+        // Unlimited plan: no limits, proceed to generation
+      } else {
+        // Starter/Pro: check monthly quota
+        if (access.used! >= access.quota!) {
+          return Response.json(
+            {
+              error: 'quota_exceeded',
+              message: 'Mėnesio limitas pasiektas. Atnaujinkite planą arba palaukite iki kito periodo.',
+              used: access.used,
+              limit: access.quota,
+              resetAt: access.periodEnd?.toISOString()
+            },
+            { status: 429 }
+          );
+        }
+        // Quota available, proceed to generation
+      }
+      // Subscription users bypass daily usage check
+    } else if (access.type === 'credits') {
+      // Credit user: attempt to deduct
+      const deducted = await deductCredit(dbUser.id);
+      if (!deducted) {
+        return Response.json(
+          {
+            error: 'insufficient_credits',
+            message: 'Nepakanka kreditų. Įsigykite kreditų paketą.',
+            credits: 0
+          },
+          { status: 402 }
+        );
+      }
+      // Credit deducted successfully, proceed to generation
+    } else {
+      // Free user: use existing daily limit check
+      const usageResult = await checkAndIncrementUsage(dbUser.id, timezone);
+
+      if (!usageResult.allowed) {
+        return Response.json(
+          {
+            error: 'quota_exceeded',
+            message: 'Dienos limitas pasiektas. Atnaujinkite planą arba palaukite iki rytojaus.',
+            used: usageResult.used,
+            limit: usageResult.limit,
+            resetAt: usageResult.resetAt?.toISOString()
+          },
+          { status: 429 }
+        );
+      }
     }
 
     // 5. Parse and validate request body
