@@ -2,10 +2,15 @@ import { streamText } from 'ai';
 import { kieai } from '@/app/lib/ai';
 import { dailyLimit } from '@/app/lib/rate-limit';
 import type { GenerateRequest, RateLimitError, ApiError } from '@/app/types/api';
+import { createClient } from '@/lib/supabase/server';
+import { db } from '@/app/db';
+import { users } from '@/app/db/schema';
+import { eq } from 'drizzle-orm';
+import { checkAndIncrementUsage } from '@/lib/usage/queries';
 
-// Edge Runtime for 25s timeout (vs 10s serverless)
-export const runtime = 'edge';
-export const maxDuration = 25;
+// Node.js Runtime for direct Drizzle access (streaming still works)
+export const runtime = 'nodejs';
+export const maxDuration = 60; // 60 second timeout for Node.js (Vercel Pro)
 
 // Industry-specific system prompts for better, more relevant content
 const INDUSTRY_PROMPTS: Record<string, string> = {
@@ -411,7 +416,47 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. Parse and validate request body
+    // 2. Check authentication
+    const supabase = await createClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+
+    if (!authUser) {
+      return Response.json(
+        {
+          error: 'auth_required',
+          message: 'Prisijunkite, kad galėtumėte generuoti įrašus'
+        },
+        { status: 401 }
+      );
+    }
+
+    // 3. Get internal user ID
+    const [dbUser] = await db.select().from(users).where(eq(users.authId, authUser.id));
+    if (!dbUser) {
+      return Response.json(
+        { error: 'user_not_found', message: 'Vartotojas nerastas' },
+        { status: 404 }
+      );
+    }
+
+    // 4. Check and increment usage quota
+    const timezone = request.headers.get('X-Timezone') || 'UTC';
+    const usageResult = await checkAndIncrementUsage(dbUser.id, timezone);
+
+    if (!usageResult.allowed) {
+      return Response.json(
+        {
+          error: 'quota_exceeded',
+          message: 'Dienos limitas pasiektas. Atnaujinkite planą arba palaukite iki rytojaus.',
+          used: usageResult.used,
+          limit: usageResult.limit,
+          resetAt: usageResult.resetAt?.toISOString()
+        },
+        { status: 429 }
+      );
+    }
+
+    // 5. Parse and validate request body
     const body: GenerateRequest = await request.json();
 
     if (!body.industry || !body.prompt) {
@@ -422,7 +467,7 @@ export async function POST(request: Request) {
       return Response.json(response, { status: 400 });
     }
 
-    // 3. Generate with streaming using industry-specific prompt
+    // 6. Generate with streaming using industry-specific prompt
     const systemPrompt = getSystemPrompt(body.industry);
     const result = streamText({
       model: kieai('gpt-4o'),
@@ -432,7 +477,7 @@ export async function POST(request: Request) {
       ],
     });
 
-    // 4. Return streaming response with rate limit headers
+    // 7. Return streaming response with rate limit headers
     const response = result.toTextStreamResponse();
 
     // Add rate limit headers to streaming response
