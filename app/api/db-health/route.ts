@@ -5,6 +5,17 @@ import { users } from '@/app/db/schema';
 import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
+/**
+ * GET /api/db-health - Database health check
+ *
+ * @internal Ops-only endpoint for infrastructure monitoring.
+ * Used to verify database connectivity and schema access.
+ * Not intended for frontend consumption.
+ *
+ * Returns:
+ * - 200: { status: 'healthy', database: 'connected', ... } - DB accessible
+ * - 503: { status: 'unhealthy', error: string } - DB connection failed
+ */
 export async function GET() {
   try {
     // Test 1: Basic connectivity - execute raw SQL
