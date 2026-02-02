@@ -40,6 +40,14 @@ export function IndustryAutocomplete({
     return results.map((result) => result.item);
   }, [value, fuse, showAll]);
 
+  const handleInputClick = () => {
+    // When user clicks input with existing value, re-open dropdown with full list
+    if (value && !isOpen) {
+      setIsOpen(true);
+      setShowAll(true);
+    }
+  };
+
   const handleFocus = () => {
     setShowAll(true);
     setIsOpen(true);
@@ -101,6 +109,7 @@ export function IndustryAutocomplete({
           setShowAll(false);
           onChange(e.target.value);
         }}
+        onClick={handleInputClick}
         onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
