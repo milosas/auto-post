@@ -243,10 +243,10 @@ Plans:
 2. `/api/usage` POST endpoint documented as internal/debug endpoint OR removed
 3. No orphaned exports remain in auth module
 
-**Plans**: 1 plan (pending)
+**Plans**: 1 plan
 
 Plans:
-- [ ] 10-01-PLAN.md — Remove orphaned code and document internal endpoints
+- [ ] 10-01-PLAN.md - Remove orphaned code and document internal endpoints
 
 ## Progress
 
