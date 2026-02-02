@@ -153,7 +153,7 @@ Plans:
 - UsageCounter component with color-coded progress bar
 - Countdown timer hook for reset time display
 - UpgradeCTA button with €9/month pricing and benefits tooltip
-- /api/generate quota enforcement (Edge→Node.js runtime migration)
+- /api/generate quota enforcement (Edge->Node.js runtime migration)
 - Main page conditional rendering (auth gate + limit gate)
 
 **Plans**: 4 plans (complete)
@@ -213,10 +213,11 @@ Plans:
 4. Dashboard provides quick access to generate new post
 5. Industry selector expands full list when clicking on selected industry (UX fix)
 
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD during planning
+- [ ] 09-01-PLAN.md — Dashboard page with stats grid and navigation
+- [ ] 09-02-PLAN.md — Industry selector click-to-reopen UX fix
 
 ## Progress
 
