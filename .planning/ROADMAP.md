@@ -7,7 +7,7 @@ Transform the anonymous v1 MVP into a credible SaaS product by adding authentica
 ## Milestones
 
 - **v1.0 MVP** - Phases 1-3 (shipped 2026-01-27)
-- **v2.0 User System + Monetization** - Phases 4-9 (in progress)
+- **v2.0 User System + Monetization** - Phases 4-9 (shipped 2026-02-02)
 
 ## Phases
 
@@ -34,9 +34,9 @@ Delivered drag-drop image upload (max 5MB), DALL-E 3 AI generation, Facebook/Ins
 
 </details>
 
-### v2.0 User System + Monetization (In Progress)
+### v2.0 User System + Monetization (SHIPPED 2026-02-02)
 
-**Milestone Goal:** Transform anonymous tool into SaaS with user accounts, post history, and Stripe payments.
+**Milestone Goal:** Transform anonymous tool into SaaS with user accounts, post history, and Stripe payments. **COMPLETE**
 
 #### Phase 4: Database Foundation
 
@@ -206,18 +206,27 @@ Plans:
 
 **Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, UX-01
 
-**Success Criteria** (what must be TRUE):
+**Status**: Complete (2026-02-02)
+
+**Success Criteria** (verified):
 1. User sees dashboard after login with clear navigation
 2. Dashboard shows usage stats (generations today, total posts saved)
 3. Dashboard shows subscription or credit status clearly
 4. Dashboard provides quick access to generate new post
 5. Industry selector expands full list when clicking on selected industry (UX fix)
 
-**Plans**: 2 plans
+**Delivered:**
+- Dashboard stats query helper with parallel Promise.all queries (lib/dashboard/queries.ts)
+- StatCard component for reusable stat display (app/components/StatCard.tsx)
+- Dashboard layout with navigation bar (app/dashboard/layout.tsx)
+- Dashboard page with 4 stat cards and auth check (app/dashboard/page.tsx)
+- Industry autocomplete click-to-reopen UX fix (app/components/IndustryAutocomplete.tsx)
+
+**Plans**: 2 plans (complete)
 
 Plans:
-- [ ] 09-01-PLAN.md — Dashboard page with stats grid and navigation
-- [ ] 09-02-PLAN.md — Industry selector click-to-reopen UX fix
+- [x] 09-01-PLAN.md — Dashboard page with stats grid and navigation
+- [x] 09-02-PLAN.md — Industry selector click-to-reopen UX fix
 
 ## Progress
 
@@ -234,4 +243,4 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 6. Post History | v2.0 | Complete | 2026-01-31 |
 | 7. Usage Limits | v2.0 | Complete | 2026-02-01 |
 | 8. Payments | v2.0 | Complete | 2026-02-01 |
-| 9. Dashboard & Polish | v2.0 | Not started | - |
+| 9. Dashboard & Polish | v2.0 | Complete | 2026-02-02 |

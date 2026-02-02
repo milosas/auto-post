@@ -9,19 +9,19 @@ Requirements for User System + Monetization milestone. Each maps to roadmap phas
 
 ### UX Improvements
 
-- [ ] **UX-01**: Industry selector expands full list when clicking on selected industry
+- [x] **UX-01**: Industry selector expands full list when clicking on selected industry
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can sign up with Google OAuth
-- [ ] **AUTH-02**: User can sign up with email and password
-- [ ] **AUTH-03**: User can log in with Google OAuth
-- [ ] **AUTH-04**: User can log in with email and password
-- [ ] **AUTH-05**: User can reset password via email link
-- [ ] **AUTH-06**: User receives email verification after signup
-- [ ] **AUTH-07**: User session persists across browser refresh (remember me)
-- [ ] **AUTH-08**: User can log out
-- [ ] **AUTH-09**: User can log in with magic link (passwordless email)
+- [x] **AUTH-01**: User can sign up with Google OAuth
+- [x] **AUTH-02**: User can sign up with email and password
+- [x] **AUTH-03**: User can log in with Google OAuth
+- [x] **AUTH-04**: User can log in with email and password
+- [x] **AUTH-05**: User can reset password via email link
+- [x] **AUTH-06**: User receives email verification after signup
+- [x] **AUTH-07**: User session persists across browser refresh (remember me)
+- [x] **AUTH-08**: User can log out
+- [x] **AUTH-09**: User can log in with magic link (passwordless email)
 
 ### Post History
 
@@ -44,21 +44,21 @@ Requirements for User System + Monetization milestone. Each maps to roadmap phas
 
 ### Payments
 
-- [ ] **PAY-01**: User can subscribe via Stripe Checkout (monthly plan)
-- [ ] **PAY-02**: Subscribed users have unlimited generations
-- [ ] **PAY-03**: User can update payment method via Stripe Customer Portal
-- [ ] **PAY-04**: User can cancel subscription via Stripe Customer Portal
-- [ ] **PAY-05**: Stripe webhooks handle subscription events (created, canceled, failed)
-- [ ] **PAY-06**: User can purchase credits as alternative to subscription
-- [ ] **PAY-07**: Credits deducted per generation for credit users
-- [ ] **PAY-08**: User can view credit balance
+- [x] **PAY-01**: User can subscribe via Stripe Checkout (monthly plan)
+- [x] **PAY-02**: Subscribed users have unlimited generations
+- [x] **PAY-03**: User can update payment method via Stripe Customer Portal
+- [x] **PAY-04**: User can cancel subscription via Stripe Customer Portal
+- [x] **PAY-05**: Stripe webhooks handle subscription events (created, canceled, failed)
+- [x] **PAY-06**: User can purchase credits as alternative to subscription
+- [x] **PAY-07**: Credits deducted per generation for credit users
+- [x] **PAY-08**: User can view credit balance
 
 ### Dashboard
 
-- [ ] **DASH-01**: User sees dashboard after login
-- [ ] **DASH-02**: Dashboard shows usage stats (generations today, total saved)
-- [ ] **DASH-03**: Dashboard shows subscription/credit status
-- [ ] **DASH-04**: Dashboard provides quick access to generate new post
+- [x] **DASH-01**: User sees dashboard after login
+- [x] **DASH-02**: Dashboard shows usage stats (generations today, total saved)
+- [x] **DASH-03**: Dashboard shows subscription/credit status
+- [x] **DASH-04**: Dashboard provides quick access to generate new post
 
 ## Future Requirements (v2.1+)
 
@@ -107,16 +107,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UX-01 | Phase 9 | Pending |
-| AUTH-01 | Phase 5 | Pending |
-| AUTH-02 | Phase 5 | Pending |
-| AUTH-03 | Phase 5 | Pending |
-| AUTH-04 | Phase 5 | Pending |
-| AUTH-05 | Phase 5 | Pending |
-| AUTH-06 | Phase 5 | Pending |
-| AUTH-07 | Phase 5 | Pending |
-| AUTH-08 | Phase 5 | Pending |
-| AUTH-09 | Phase 5 | Pending |
+| UX-01 | Phase 9 | Complete |
+| AUTH-01 | Phase 5 | Complete |
+| AUTH-02 | Phase 5 | Complete |
+| AUTH-03 | Phase 5 | Complete |
+| AUTH-04 | Phase 5 | Complete |
+| AUTH-05 | Phase 5 | Complete |
+| AUTH-06 | Phase 5 | Complete |
+| AUTH-07 | Phase 5 | Complete |
+| AUTH-08 | Phase 5 | Complete |
+| AUTH-09 | Phase 5 | Complete |
 | HIST-01 | Phase 6 | Complete |
 | HIST-02 | Phase 6 | Complete |
 | HIST-03 | Phase 6 | Complete |
@@ -130,18 +130,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | USAGE-03 | Phase 7 | Complete |
 | USAGE-04 | Phase 7 | Complete |
 | USAGE-05 | Phase 7 | Complete |
-| PAY-01 | Phase 8 | Pending |
-| PAY-02 | Phase 8 | Pending |
-| PAY-03 | Phase 8 | Pending |
-| PAY-04 | Phase 8 | Pending |
-| PAY-05 | Phase 8 | Pending |
-| PAY-06 | Phase 8 | Pending |
-| PAY-07 | Phase 8 | Pending |
-| PAY-08 | Phase 8 | Pending |
-| DASH-01 | Phase 9 | Pending |
-| DASH-02 | Phase 9 | Pending |
-| DASH-03 | Phase 9 | Pending |
-| DASH-04 | Phase 9 | Pending |
+| PAY-01 | Phase 8 | Complete |
+| PAY-02 | Phase 8 | Complete |
+| PAY-03 | Phase 8 | Complete |
+| PAY-04 | Phase 8 | Complete |
+| PAY-05 | Phase 8 | Complete |
+| PAY-06 | Phase 8 | Complete |
+| PAY-07 | Phase 8 | Complete |
+| PAY-08 | Phase 8 | Complete |
+| DASH-01 | Phase 9 | Complete |
+| DASH-02 | Phase 9 | Complete |
+| DASH-03 | Phase 9 | Complete |
+| DASH-04 | Phase 9 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 35 total
@@ -150,4 +150,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-29*
-*Last updated: 2026-01-29 after roadmap creation*
+*Last updated: 2026-02-02 - All v2.0 requirements complete*
