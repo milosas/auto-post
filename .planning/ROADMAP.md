@@ -7,7 +7,7 @@ Transform the anonymous v1 MVP into a credible SaaS product by adding authentica
 ## Milestones
 
 - **v1.0 MVP** - Phases 1-3 (shipped 2026-01-27)
-- **v2.0 User System + Monetization** - Phases 4-10 (in progress)
+- **v2.0 User System + Monetization** - Phases 4-10 (shipped 2026-02-02)
 
 ## Phases
 
@@ -236,17 +236,23 @@ Plans:
 
 **Gap Closure**: Addresses tech debt from v2.0-MILESTONE-AUDIT.md
 
-**Status**: Pending
+**Status**: Complete (2026-02-02)
 
-**Success Criteria**:
+**Success Criteria** (verified):
 1. `getCurrentUser()` function removed from lib/auth/sync-user.ts (orphaned, never used)
-2. `/api/usage` POST endpoint documented as internal/debug endpoint OR removed
-3. No orphaned exports remain in auth module
+2. `/api/usage` POST endpoint documented as internal/debug endpoint
+3. `/api/db-health` endpoint documented as ops-only endpoint
+4. No orphaned exports remain in auth module
 
-**Plans**: 1 plan
+**Delivered:**
+- Removed unused getCurrentUser() export from lib/auth/sync-user.ts
+- Added @internal JSDoc to POST /api/usage (debug endpoint)
+- Added @internal JSDoc to GET /api/db-health (ops endpoint)
+
+**Plans**: 1 plan (complete)
 
 Plans:
-- [ ] 10-01-PLAN.md - Remove orphaned code and document internal endpoints
+- [x] 10-01-PLAN.md - Remove orphaned code and document internal endpoints
 
 ## Progress
 
@@ -264,4 +270,4 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9 → 10
 | 7. Usage Limits | v2.0 | Complete | 2026-02-01 |
 | 8. Payments | v2.0 | Complete | 2026-02-01 |
 | 9. Dashboard & Polish | v2.0 | Complete | 2026-02-02 |
-| 10. Code Cleanup | v2.0 | Pending | - |
+| 10. Code Cleanup | v2.0 | Complete | 2026-02-02 |
