@@ -7,7 +7,7 @@ Transform the anonymous v1 MVP into a credible SaaS product by adding authentica
 ## Milestones
 
 - **v1.0 MVP** - Phases 1-3 (shipped 2026-01-27)
-- **v2.0 User System + Monetization** - Phases 4-9 (shipped 2026-02-02)
+- **v2.0 User System + Monetization** - Phases 4-10 (in progress)
 
 ## Phases
 
@@ -34,9 +34,9 @@ Delivered drag-drop image upload (max 5MB), DALL-E 3 AI generation, Facebook/Ins
 
 </details>
 
-### v2.0 User System + Monetization (SHIPPED 2026-02-02)
+### v2.0 User System + Monetization
 
-**Milestone Goal:** Transform anonymous tool into SaaS with user accounts, post history, and Stripe payments. **COMPLETE**
+**Milestone Goal:** Transform anonymous tool into SaaS with user accounts, post history, and Stripe payments.
 
 #### Phase 4: Database Foundation
 
@@ -228,10 +228,30 @@ Plans:
 - [x] 09-01-PLAN.md — Dashboard page with stats grid and navigation
 - [x] 09-02-PLAN.md — Industry selector click-to-reopen UX fix
 
+#### Phase 10: Code Cleanup
+
+**Goal**: Remove orphaned code identified in v2.0 audit
+
+**Depends on**: Phase 9 (post-completion cleanup)
+
+**Gap Closure**: Addresses tech debt from v2.0-MILESTONE-AUDIT.md
+
+**Status**: Pending
+
+**Success Criteria**:
+1. `getCurrentUser()` function removed from lib/auth/sync-user.ts (orphaned, never used)
+2. `/api/usage` POST endpoint documented as internal/debug endpoint OR removed
+3. No orphaned exports remain in auth module
+
+**Plans**: 1 plan (pending)
+
+Plans:
+- [ ] 10-01-PLAN.md — Remove orphaned code and document internal endpoints
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
+Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9 → 10
 
 | Phase | Milestone | Status | Completed |
 |-------|-----------|--------|-----------|
@@ -244,3 +264,4 @@ Phases execute in numeric order: 4 → 5 → 6 → 7 → 8 → 9
 | 7. Usage Limits | v2.0 | Complete | 2026-02-01 |
 | 8. Payments | v2.0 | Complete | 2026-02-01 |
 | 9. Dashboard & Polish | v2.0 | Complete | 2026-02-02 |
+| 10. Code Cleanup | v2.0 | Pending | - |
