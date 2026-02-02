@@ -65,6 +65,10 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/usage - Increment usage counter
  *
+ * @internal Debug endpoint - not called by frontend.
+ * Usage increment is handled directly in /api/generate to ensure atomicity.
+ * This endpoint exists for manual testing and debugging purposes.
+ *
  * Returns:
  * - 200: { allowed: true, used, limit, resetAt } - Increment successful
  * - 429: { allowed: false, used, limit, resetAt } - Limit reached
