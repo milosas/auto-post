@@ -2,8 +2,36 @@
 
 ## Current State
 
-**Shipped:** v1 MVP (2026-01-27)
-**Active:** v2.0 User System + Monetization
+**Shipped:** v2.0 User System + Monetization (2026-02-02)
+
+**What v2.0 delivered:**
+- Supabase Auth with Google OAuth, email/password, and magic link authentication
+- Drizzle ORM database layer (users, posts, subscriptions, usage_limits)
+- Post history with infinite scroll, search, favorites, and regenerate
+- Timezone-aware usage limits (3/day free tier) with automatic reset
+- Stripe payments with 3 subscription tiers and credit packages
+- User dashboard with stats grid and navigation
+- Code cleanup addressing all identified tech debt
+
+**Stats:**
+- 118 files, 7,665 LOC TypeScript
+- 35/35 requirements satisfied (100%)
+- 7 phases, 23 plans completed
+
+## Next Milestone Goals
+
+**Planned:** v2.1 (TBD)
+
+Potential features from Future Requirements:
+- Facebook OAuth (AUTH-10)
+- Account deletion with GDPR compliance (AUTH-11)
+- Filter posts by industry/date range (HIST-09, HIST-10)
+- Annual billing with discount (PAY-09)
+
+---
+
+<details>
+<summary>v1.0 Baseline (Shipped 2026-01-27)</summary>
 
 **What v1 delivered:**
 - AI-powered post generator for Lithuanian service providers
@@ -14,17 +42,7 @@
 - Multi-format download (PNG/JPEG)
 - Complete 60-second workflow from landing to download
 
-## Current Milestone: v2.0 User System + Monetization
-
-**Goal:** Transform anonymous tool into SaaS with user accounts, post history, and Stripe payments.
-
-**Target features:**
-- Industry selector UX fix (expand on click)
-- Authentication (Google, Facebook, Email)
-- User dashboard with post history by date
-- Database storage for generated text + images
-- Stripe payments (subscription + credits)
-- Free tier: 3 generations/day
+</details>
 
 ## What This Is
 
@@ -32,88 +50,97 @@ A fast, simple tool for small service providers (beauty specialists, trainers, p
 
 ## Core Value
 
-Users can generate a professional, industry-appropriate social media post in under 60 seconds without any account creation or complex setup.
+Users can generate a professional, industry-appropriate social media post in under 60 seconds with full SaaS features (auth, history, payments).
 
 ## Requirements
 
 ### Validated
 
-- Industry selection with 20 Lithuanian categories — v1
-- Image upload (JPG/PNG/WebP, max 5MB) with drag & drop — v1
-- AI image generation via DALL-E with "generate from text" — v1
-- Post configuration (topic, tone, emoji, length) — v1
-- Streaming text generation in Lithuanian — v1
-- One-click copy with toast confirmation — v1
-- Regenerate text functionality — v1
-- Facebook/Instagram mock preview — v1
-- Mobile/desktop preview toggle — v1
-- Responsive mobile-first design — v1
-- Loading states during AI generation — v1
-- Toast notifications for actions — v1
-- Secured API keys (server-side only) — v1
-- Rate limiting for cost protection — v1
+**v1.0:**
+- Industry selection with 20 Lithuanian categories
+- Image upload (JPG/PNG/WebP, max 5MB) with drag & drop
+- AI image generation via DALL-E with "generate from text"
+- Post configuration (topic, tone, emoji, length)
+- Streaming text generation in Lithuanian
+- One-click copy with toast confirmation
+- Regenerate text functionality
+- Facebook/Instagram mock preview
+- Mobile/desktop preview toggle
+- Responsive mobile-first design
+- Loading states during AI generation
+- Toast notifications for actions
+- Secured API keys (server-side only)
+- Rate limiting for cost protection
+
+**v2.0:**
+- Industry selector expands on click (UX fix)
+- Google OAuth authentication
+- Email/password authentication
+- Magic link authentication
+- User dashboard with stats
+- Post history with search and favorites
+- Supabase Storage for images
+- Stripe subscription payments
+- Stripe credits system
+- Free tier with 3 generations/day limit
 
 ### Active
 
-- [ ] Industry selector expands on click (UX fix)
-- [ ] Google OAuth authentication
-- [ ] Facebook OAuth authentication
-- [ ] Email/password authentication
-- [ ] User dashboard
-- [ ] Post history storage (text + images)
-- [ ] History view by date
-- [ ] Stripe subscription payments
-- [ ] Stripe credits/tokens system
-- [ ] Free tier with 3 generations/day limit
+(Next milestone requirements will be defined via `/gsd:new-milestone`)
 
 ### Out of Scope
 
 - Post scheduling — users copy/paste manually
 - Direct posting to social media — requires OAuth complexity
-- Analytics / tracking — not needed for MVP
-- Templates library — deferred, focus on core SaaS features first
+- Analytics / tracking — not needed for current scope
+- Templates library — deferred
 - Multi-language beyond Lithuanian — LT only for now
 - Team collaboration — single-user tool
 - Image crop functionality — upload as-is
-- Inline text editing — user regenerates instead (tech debt from v1)
+- Two-factor authentication (2FA) — overkill for content tool
+- Enterprise SSO (SAML) — target is SMBs
+- Lifetime deals — unsustainable for MRR
 
 ## Context
 
-**Shipped:** v1 MVP with 1,768 LOC TypeScript across 22 source files.
+**Shipped:** v2.0 with 7,665 LOC TypeScript across 118 files.
 
 **Tech stack:**
-- Next.js 15 with Edge Runtime
+- Next.js 15 with Node.js runtime
+- Supabase Auth + Postgres
+- Drizzle ORM with postgres.js
 - OpenAI API for streaming text generation
 - DALL-E 3 for AI image generation
-- Upstash Redis for rate limiting (optional)
+- Stripe for payments (subscriptions + credits)
+- Supabase Storage for image persistence
 - Fuse.js for industry autocomplete
 - html-to-image for preview export
 - react-dropzone for image upload
 - react-hot-toast for notifications
+- @date-fns/tz for timezone handling
 
 **Target Users:** Lithuanian small service providers who need to post regularly on social media but struggle with content creation. They're busy professionals, not marketers.
-
-**Industry Categories (20):**
-Grožio specialistai, Treneriai, Kineziterapeutai, Masažistai, Psichologai, Fotografai, Floristai, Renginių organizatoriai, Virtuvės šefai, Interjero dizaineriai, Nekilnojamo turto agentai, Veterinarai, Buhalteriai, Teisininkai, Programuotojai, Dizaineriai, Konditeriai, Korepetitoriai, Valymo paslaugos, Kita
 
 ## Constraints
 
 - **API:** OpenAI direct API for text generation
-- **Deployment:** Vercel with Edge Runtime
+- **Deployment:** Vercel with Node.js runtime
 - **Language:** Lithuanian only
-- **No Auth:** Single page, no user accounts
 - **Image Size:** Max 5MB uploads
+- **Auth:** Supabase Auth with Google OAuth
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Direct OpenAI for text generation | Simpler setup than proxy | Good |
-| Edge Runtime for streaming | 25s timeout vs 10s serverless | Good |
+| Node.js Runtime (changed from Edge) | Supabase session handling | Good |
 | Optional rate limiting | Graceful degradation in dev | Good |
 | DALL-E 3 over Flux | Same OpenAI API, simpler integration | Good |
-| Skip image crop | Users can crop before upload | Good |
-| No routing (SPA) | Single flow, no need for pages | Good |
+| Supabase Auth over Clerk | Unified with existing Supabase DB | Good |
+| Cursor-based pagination | Stable pagination, better performance | Good |
+| Timezone-aware usage limits | Better UX, users think in local time | Good |
+| Atomic credit deduction | Prevents race conditions | Good |
 | Fuse.js for autocomplete | Typo-tolerant industry search | Good |
 | html-to-image for export | DOM to PNG/JPEG conversion | Good |
 | 20 industry categories | Broad coverage per user feedback | Good |
@@ -128,4 +155,4 @@ Tracked for future cleanup:
 - **Image optimization:** Using `<img>` instead of `next/image`
 
 ---
-*Last updated: 2026-01-29 after v2.0 milestone initialization*
+*Last updated: 2026-02-02 after v2.0 milestone completion*
